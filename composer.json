@@ -12,7 +12,10 @@
   "repositories": [
     {
       "type": "path",
-      "url": "../easysql-sdk-php/"
+      "url": "../easysql-sdk-php/",
+      "options": {
+        "symlink": false
+      }
     },
     {
       "type": "vcs",
@@ -21,7 +24,7 @@
   ],
   "require": {
     "php": ">=7.4",
-    "easysql/sdk": "0.1.0"
+    "easysql/sdk": "^1.1.0"
   },
     "autoload": {
         "psr-4": {
