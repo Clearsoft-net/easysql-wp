@@ -4,15 +4,15 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b8736feec7f5d56d3395f81eba4cc174",
+    "content-hash": "a63845a35e02aa766eafedbb40e0b8d3",
     "packages": [
         {
             "name": "easysql/sdk",
-            "version": "0.1.0",
+            "version": "1.1.0",
             "dist": {
                 "type": "path",
                 "url": "../easysql-sdk-php",
-                "reference": "e6e3d3c668950edb78b2cd42f272530c8d0b9420"
+                "reference": "70c11c9b522ea5a0fb0cfdf7ac05cd1e71bf64de"
             },
             "require": {
                 "ext-json": "*",
@@ -24,6 +24,9 @@
             },
             "type": "library",
             "autoload": {
+                "files": [
+                    "src/token-store.php"
+                ],
                 "psr-4": {
                     "Clearsoft\\EasySQL\\SDK\\": "src/"
                 }
@@ -44,6 +47,7 @@
             ],
             "description": "EasySQL API PHP SDK — Ask questions in natural language to your MySQL, MariaDB or PostgreSQL databases.",
             "transport-options": {
+                "symlink": false,
                 "relative": true
             }
         },
