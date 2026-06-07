@@ -5,7 +5,7 @@
 
 ## Visão geral
 
-Plugin WordPress que integra o serviço externo **EasySQL** ao WP, permitindo fazer perguntas em linguagem natural sobre o banco de dados WordPress. É uma fina camada sobre o [SDK PHP do EasySQL](https://github.com/Clearsoft-net/easysql-sdk-php) (`easysql/sdk: 0.1.0`, instalado via repositório `path: ../easysql-sdk-php/` ou fallback `vcs: GitHub`).
+Plugin WordPress que integra o serviço externo **EasySQL** ao WP, permitindo fazer perguntas em linguagem natural sobre o banco de dados WordPress. É uma fina camada sobre o [SDK PHP do EasySQL](https://github.com/Clearsoft-net/easysql-sdk-php) (`easysql/sdk: ^1.1.0`, instalado via repositório `path: ../easysql-sdk-php/` com `symlink: false`, ou fallback `vcs: GitHub`).
 
 - **Site oficial:** https://easysql.net
 - **Versão do plugin:** `0.1.0` (constante `EASYSQL_VERSION` em `easysql-wp.php`)
