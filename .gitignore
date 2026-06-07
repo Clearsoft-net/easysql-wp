@@ -1,0 +1,27 @@
+# Dependencies
+vendor/
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# IDE / editor
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# wp-env
+.wpenv/
+
+# Build artifacts
+*.log
+*.cache
+
+# OpenCode
+.opencode/
+
+# PHP tooling
+.phpactor.json
