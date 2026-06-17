@@ -25,3 +25,6 @@ Thumbs.db
 
 # PHP tooling
 .phpactor.json
+
+# Local planning files
+.plan/
