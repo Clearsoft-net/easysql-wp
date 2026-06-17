@@ -31,7 +31,7 @@ easysql-wp/
 ├── composer.json              # PSR-4 + repositórios (path local + VCS GitHub)
 ├── README.md                  # Docs para usuários finais
 ├── AGENTS.md                  # Contexto para agentes de IA
-├── PLAN.md                    # Roadmap MVP
+├── .plan/                     # Backlog tático (gitignored)
 ├── LICENSE                    # MIT
 ├── Makefile                   # Atalhos de dev (lint, wp-env, etc.)
 ├── .wp-env.json               # Config do @wordpress/env para dev local
@@ -113,7 +113,7 @@ Local WP via `@wordpress/env` (config em `.wp-env.json`).
 ## Pendências conhecidas
 
 - **WP-CLI** marcado como "planned" no README — não implementado.
-- **Páginas admin** (Ask, History, Dashboard, Billing) — pendentes (ver PLAN.md).
+- **Páginas admin** (Ask, History, Dashboard, Billing) — pendentes (ver .plan/).
 
 ## Testes
 
