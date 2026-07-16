@@ -184,12 +184,30 @@ class Plugin {
                 true
             );
 
+            // Try to resolve the connector ID server-side so the JS
+            // doesn't need an extra round-trip.
+            $connector_id = null;
+            try {
+                $connector    = $this->connector_service->get_or_create();
+                $connector_id = $connector['id'] ?? null;
+            } catch (\Throwable $e) {
+                // Connector not available yet — ask.js will prompt the user.
+            }
+
             wp_enqueue_script(
                 'easysql-ask',
                 EASYSQL_URL . 'assets/ask.js',
                 ['jquery', 'chart-js'],
-                EASYSQL_VERSION,
+                filemtime(EASYSQL_DIR . 'assets/ask.js'),
                 true
+            );
+
+            wp_localize_script(
+                'easysql-ask',
+                'easysqlAsk',
+                [
+                    'connector_id' => $connector_id,
+                ]
             );
         }
 
