@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace EasySQL\Tests\Unit;
 
 use EasySQL\QueryService;
-use EasySQL\Tests\Support\HealthServer;
+use EasySQL\Tests\Support\ApiServer;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -14,10 +14,11 @@ use PHPUnit\Framework\TestCase;
  * Integration tests for the plugin's real-API flows.
  *
  * No fakes, no mocks, no SDK subclassing. We:
- *   1. Boot a real PHP built-in server (HealthServer) returning canned
+ *   1. Use the shared ApiServer (PHP built-in server) returning canned
  *      responses for /v1/health and /v1/queries.
  *   2. Configure the real Clearsoft\EasySQL\SDK\Client (constructed by
- *      QueryService::client()) with the test server's base_url.
+ *      QueryService::client()) with the test server's base_url via the
+ *      EASYSQL_ENDPOINT constant (defined in bootstrap.php).
  *   3. Drive the real QueryService methods and assert.
  *
  * The only thing under our control is what the test server returns;
@@ -29,25 +30,13 @@ final class QueryServiceTest extends TestCase
     private const ROUTE_HEALTH  = 'GET /v1/health';
     private const ROUTE_QUERIES = 'POST /v1/queries';
 
-    private static HealthServer $server;
+    private static ApiServer $server;
     private QueryService $service;
 
     public static function setUpBeforeClass(): void
     {
-        self::$server = new HealthServer();
-        self::$server->start();
-
-        // Point the plugin's SDK at the test server by defining the
-        // EASYSQL_ENDPOINT constant before any production code reads
-        // it. Cannot be redefined; we guard with defined().
-        if (!defined('EASYSQL_ENDPOINT')) {
-            define('EASYSQL_ENDPOINT', self::$server->getBaseUrl());
-        }
-    }
-
-    public static function tearDownAfterClass(): void
-    {
-        self::$server->stop();
+        self::$server = ApiServer::instance();
+        self::$server->clearState();
     }
 
     protected function setUp(): void

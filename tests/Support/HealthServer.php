@@ -104,6 +104,17 @@ final class HealthServer
         }
     }
 
+    /**
+     * Delete the state file so the test server resets its canned
+     * responses. Useful between test classes that share the server.
+     */
+    public function removeStateFile(): void
+    {
+        if (is_file($this->stateFile)) {
+            unlink($this->stateFile);
+        }
+    }
+
     public function __destruct()
     {
         $this->stop();
