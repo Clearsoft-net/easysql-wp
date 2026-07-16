@@ -1,4 +1,4 @@
-/* global jQuery, wpApiSettings, Chart */
+/* global jQuery, wpApiSettings, Chart, easysqlAsk */
 
 (function ($) {
     'use strict';
@@ -37,31 +37,6 @@
     // Ask
     // -----------------------------------------------------------------------
 
-    // Resolve the connector ID once and cache it.
-    var _connectorId = null;
-
-    function getConnectorId(callback) {
-        if (_connectorId) {
-            callback(_connectorId);
-            return;
-        }
-        $.ajax({
-            url:  wpApiSettings.root + 'easysql/v1/connector',
-            method: 'GET',
-            beforeSend: function (xhr) {
-                xhr.setRequestHeader('X-WP-Nonce', wpApiSettings.nonce);
-            },
-            success: function (resp) {
-                _connectorId = resp.id;
-                callback(_connectorId);
-            },
-            error: function () {
-                $askStatus.html('<span class="error">Could not load connector. Save your API key in Settings first.</span>');
-                $askBtn.prop('disabled', false);
-            },
-        });
-    }
-
     $askBtn.on('click', function () {
         var question = $question.val().trim();
         if (! question) {
@@ -69,19 +44,26 @@
             return;
         }
 
+        var connectorId = easysqlAsk.connector_id;
+        if (! connectorId) {
+            $askStatus.html(
+                '<span class="error">Connector not available. Go to Settings → EasySQL first.</span>'
+            );
+            return;
+        }
+
         $askBtn.prop('disabled', true);
         $askStatus.html('<span style="color:#666">Thinking…</span>');
         $result.hide();
 
-        getConnectorId(function (connectorId) {
-            $.ajax({
-                url:  wpApiSettings.root + 'easysql/v1/query',
-                method: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    connector_id: connectorId,
-                    question: question,
-                }),
+        $.ajax({
+            url:  wpApiSettings.root + 'easysql/v1/query',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                connector_id: connectorId,
+                question: question,
+            }),
             beforeSend: function (xhr) {
                 xhr.setRequestHeader('X-WP-Nonce', wpApiSettings.nonce);
             },
