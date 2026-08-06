@@ -28,7 +28,43 @@
  * router returns real HTTP responses.
  */
 
-$stateFile = sys_get_temp_dir() . '/easysql_test_state.json';
+$stateFile     = sys_get_temp_dir() . '/easysql_test_state.json';
+$captureFile   = sys_get_temp_dir() . '/easysql_test_capture.json';
+
+/**
+ * Read a JSON file safely (process-safe for php -S workers).
+ */
+$readJson = function (string $file): array {
+    if (! is_file($file)) {
+        return [];
+    }
+    $fp = @fopen($file, 'rb');
+    if ($fp === false) {
+        return [];
+    }
+    flock($fp, LOCK_SH);
+    $data = json_decode((string) fread($fp, max(filesize($file), 1)), true);
+    flock($fp, LOCK_UN);
+    fclose($fp);
+    return is_array($data) ? $data : [];
+};
+
+/**
+ * Write a JSON file safely (process-safe for php -S workers).
+ */
+$writeJson = function (string $file, array $data): void {
+    $fp = @fopen($file, 'cb');
+    if ($fp === false) {
+        return;
+    }
+    flock($fp, LOCK_EX);
+    ftruncate($fp, 0);
+    rewind($fp);
+    fwrite($fp, json_encode($data));
+    fflush($fp);
+    flock($fp, LOCK_UN);
+    fclose($fp);
+};
 
 $path   = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
@@ -36,18 +72,28 @@ $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 if ($method === 'POST' && $path === '/__set_response') {
     $incoming = json_decode((string) file_get_contents('php://input'), true);
     if (is_array($incoming)) {
-        $existing = is_file($stateFile)
-            ? (json_decode((string) file_get_contents($stateFile), true) ?: [])
-            : [];
-        file_put_contents($stateFile, json_encode(array_merge($existing, $incoming)));
+        $existing = $readJson($stateFile);
+        $writeJson($stateFile, array_merge($existing, $incoming));
     }
     http_response_code(204);
     return true;
 }
 
-$state = is_file($stateFile)
-    ? (json_decode((string) file_get_contents($stateFile), true) ?: [])
-    : [];
+// Capture the raw body of the last request to a given route, so tests can
+// assert what the plugin actually sends (e.g. schema vs credentials).
+if ($method === 'POST' && $path === '/__clear_capture') {
+    @unlink($captureFile);
+    http_response_code(204);
+    return true;
+}
+if ($method === 'GET' && $path === '/__get_capture') {
+    $capture = $readJson($captureFile);
+    header('Content-Type: application/json');
+    echo json_encode($capture);
+    return true;
+}
+
+$state = $readJson($stateFile);
 
 /** Look up a route in the state, with fallback to defaults. */
 $serve = function (string $route) use ($state): void {
@@ -63,7 +109,9 @@ $serve = function (string $route) use ($state): void {
             'result_data'   => [['n' => 42]],
             'created_at'    => '2025-01-01T00:00:00Z',
         ])],
+        'POST /v1/queries/{id}/answer' => [200, '{}'],
         'GET /v1/connectors'           => [200, '[]'],
+        'GET /v1/connectors/{id}'      => [404, '{"detail":"Connector not found"}'],
         'POST /v1/connectors'          => [200, json_encode([
             'id'   => 'conn_default',
             'name' => 'wp',
@@ -101,18 +149,42 @@ if ($path === '/v1/queries' && $method === 'POST') {
     return true;
 }
 
+// POST /v1/queries/{id}/answer
+if ($method === 'POST' && preg_match('#^/v1/queries/[^/]+/answer$#', $path)) {
+    $body = (string) file_get_contents('php://input');
+    $capture = $readJson($captureFile);
+    $capture['POST /v1/queries/{id}/answer'] = $body;
+    $writeJson($captureFile, $capture);
+    $serve('POST /v1/queries/{id}/answer');
+    return true;
+}
+
 if ($path === '/v1/connectors' && $method === 'GET') {
     $serve('GET /v1/connectors');
     return true;
 }
 
+// GET /v1/connectors/{id}
+if ($method === 'GET' && preg_match('#^/v1/connectors/[^/]+$#', $path)) {
+    $serve('GET /v1/connectors/{id}');
+    return true;
+}
+
 if ($path === '/v1/connectors' && $method === 'POST') {
+    $body = (string) file_get_contents('php://input');
+    $capture = $readJson($captureFile);
+    $capture['POST /v1/connectors'] = $body;
+    $writeJson($captureFile, $capture);
     $serve('POST /v1/connectors');
     return true;
 }
 
 // POST /v1/connectors/{id}/sync
 if ($method === 'POST' && preg_match('#^/v1/connectors/[^/]+/sync$#', $path)) {
+    $body = (string) file_get_contents('php://input');
+    $capture = $readJson($captureFile);
+    $capture['POST /v1/connectors/{id}/sync'] = $body;
+    $writeJson($captureFile, $capture);
     $serve('POST /v1/connectors/{id}/sync');
     return true;
 }
