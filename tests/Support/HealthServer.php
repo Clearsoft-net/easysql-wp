@@ -61,6 +61,43 @@ final class HealthServer
         $this->waitUntilReady();
     }
 
+    /**
+     * Restart the server on the same port (used between test classes so the
+     * single-threaded PHP built-in server, which stops accepting connections
+     * after ~70 requests, never hits that wall). Keeps the base URL stable so
+     * the EASYSQL_ENDPOINT constant stays valid.
+     */
+    public function restart(): void
+    {
+        $this->stop();
+        $this->port = $this->port ?: $this->pickFreePort();
+
+        $router = realpath(__DIR__ . '/HealthServerRouter.php');
+        if ($router === false) {
+            throw new RuntimeException('HealthServerRouter.php not found.');
+        }
+
+        $cmd = sprintf(
+            '%s -S 127.0.0.1:%d %s',
+            escapeshellarg(PHP_BINARY),
+            $this->port,
+            escapeshellarg($router),
+        );
+
+        $descriptors = [
+            0 => ['pipe', 'r'],
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ];
+
+        $this->process = proc_open($cmd, $descriptors, $this->pipes, dirname($router));
+        if (!is_resource($this->process)) {
+            throw new RuntimeException('Failed to restart PHP test server.');
+        }
+
+        $this->waitUntilReady();
+    }
+
     public function stop(): void
     {
         if (is_resource($this->process)) {
@@ -113,6 +150,31 @@ final class HealthServer
         if (is_file($this->stateFile)) {
             unlink($this->stateFile);
         }
+    }
+
+    /**
+     * Clear the captured request-body capture file.
+     */
+    public function clearCapture(): void
+    {
+        $url = $this->getBaseUrl() . '/__clear_capture';
+        $ctx = stream_context_create(['http' => ['timeout' => 5, 'ignore_errors' => true]]);
+        @file_get_contents($url, false, $ctx);
+    }
+
+    /**
+     * Fetch the raw body the test server captured for a route.
+     */
+    public function getCapturedBody(string $route): ?string
+    {
+        $url = $this->getBaseUrl() . '/__get_capture';
+        $ctx = stream_context_create(['http' => ['timeout' => 5, 'ignore_errors' => true]]);
+        $raw = @file_get_contents($url, false, $ctx);
+        if ($raw === false) {
+            return null;
+        }
+        $data = json_decode($raw, true);
+        return (is_array($data) && isset($data[$route])) ? (string) $data[$route] : null;
     }
 
     public function __destruct()

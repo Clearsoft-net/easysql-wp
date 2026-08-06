@@ -27,8 +27,9 @@ use PHPUnit\Framework\TestCase;
 #[CoversClass(QueryService::class)]
 final class QueryServiceTest extends TestCase
 {
-    private const ROUTE_HEALTH  = 'GET /v1/health';
-    private const ROUTE_QUERIES = 'POST /v1/queries';
+    private const ROUTE_HEALTH        = 'GET /v1/health';
+    private const ROUTE_QUERIES       = 'POST /v1/queries';
+    private const ROUTE_QUERIES_ANSWER = 'POST /v1/queries/{id}/answer';
 
     private static ApiServer $server;
     private QueryService $service;
@@ -48,6 +49,8 @@ final class QueryServiceTest extends TestCase
                 'timeout' => 5,
             ],
         ];
+        // Tests must not inherit a fake $wpdb left by other test classes.
+        unset($GLOBALS['wpdb']);
     }
 
     // ── test_connection() ─────────────────────────────────────
@@ -174,5 +177,84 @@ final class QueryServiceTest extends TestCase
 
         $this->assertArrayHasKey('error', $result);
         $this->assertStringContainsString('missing API key', $result['error']);
+    }
+
+    #[Test]
+    public function query_executes_locally_and_submits_result_when_needs_local_execution(): void
+    {
+        // Backend returns the generated SQL and asks the plugin to execute it
+        // locally (schema-only "wp" connector). The plugin must run the SQL
+        // against the local $wpdb and POST the result back to /answer.
+        if (! defined('DB_NAME')) {
+            define('DB_NAME', 'wordpress');
+        }
+        $GLOBALS['wpdb'] = new class() {
+            public $dbh;
+            public $last_query = '';
+
+            public function __construct()
+            {
+                $this->dbh = new \stdClass();
+            }
+
+            public function get_results(string $query, string $output = OBJECT): array
+            {
+                $this->last_query = $query;
+                if (strpos($query, 'SELECT ID, user_login FROM wp_users') !== false) {
+                    $rows = [
+                        ['ID' => 1, 'user_login' => 'admin'],
+                        ['ID' => 2, 'user_login' => 'editor'],
+                    ];
+                    if ($output === \EasySQL\ARRAY_A) {
+                        return $rows;
+                    }
+                    return array_map(function ($r) {
+                        return (object) $r;
+                    }, $rows);
+                }
+                return [];
+            }
+        };
+
+        self::$server->setResponse(self::ROUTE_QUERIES, 200, json_encode([
+            'id'                   => 'qry_local',
+            'question'             => 'liste os usuarios',
+            'sql_generated'        => 'SELECT ID, user_login FROM wp_users',
+            'answer'               => null,
+            'chart_config'         => null,
+            'error'                => null,
+            'result_data'          => null,
+            'needs_local_execution' => true,
+            'created_at'           => '2025-01-01T00:00:00Z',
+        ]));
+        self::$server->setResponse(self::ROUTE_QUERIES_ANSWER, 200, json_encode([
+            'id'            => 'qry_local',
+            'question'      => 'liste os usuarios',
+            'sql_generated' => 'SELECT ID, user_login FROM wp_users',
+            'answer'        => 'Existem 2 usuarios.',
+            'chart_config'  => null,
+            'error'         => null,
+            'result_data'   => [
+                ['ID' => 1, 'user_login' => 'admin'],
+                ['ID' => 2, 'user_login' => 'editor'],
+            ],
+            'needs_local_execution' => true,
+            'created_at'    => '2025-01-01T00:00:00Z',
+        ]));
+        self::$server->clearCapture();
+
+        $result = $this->service->query('conn_wp', 'liste os usuarios');
+
+        // The answer returned to the admin must come from the /answer call.
+        $this->assertSame('Existem 2 usuarios.', $result['answer']);
+        $this->assertCount(2, $result['result_data']);
+
+        // The plugin must have POSTed the local result to /answer.
+        $captured = self::$server->getCapturedBody(self::ROUTE_QUERIES_ANSWER);
+        $this->assertNotNull($captured, 'Expected a POST to /v1/queries/{id}/answer');
+        $payload = json_decode($captured, true);
+        $this->assertIsArray($payload);
+        $this->assertCount(2, $payload['result_data']);
+        $this->assertSame('admin', $payload['result_data'][0]['user_login']);
     }
 }
