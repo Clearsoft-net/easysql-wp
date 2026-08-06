@@ -121,7 +121,7 @@ Local WP via `@wordpress/env` (config em `.wp-env.json`). O `make start` roda `s
 - **Zero mocks/fakes.** Os testes sobem um PHP built-in server real numa porta livre, definem `EASYSQL_ENDPOINT` apontando pra ele, e o SDK real faz chamadas HTTP reais.
 - Cobertura atual: `tests/Unit/QueryServiceTest.php` — 9 casos para `test_connection()` e `query()`.
 - Comando: `composer test` ou `vendor/bin/phpunit --testdox`.
-- SDK referenciado em `composer.json` com `repositories` apontando para `path: ../easysql-sdk-php/` (irmão) com fallback VCS.
+- SDK referenciado em `composer.json` com `repositories` apontando para `path: ../sdk-php/` (irmão) com fallback VCS.
 - `admin.js` ainda depende de jQuery — avaliar dispensar em iteração futura.
 - API key armazenada em texto puro no `wp_options` (padrão WP).
 - API key tem fallback para a constante `EASYSQL_API_KEY` (como o endpoint): se `easysql_settings['api_key']` estiver vazia, `QueryService::get_config()` usa `EASYSQL_API_KEY`. No dev local, `.wp-env.json` injeta `EASYSQL_API_KEY=easysql_sk_local_dev_0000000000000000000000` (seed determinístico do backend p/ o usuário `test@test.com`, apenas em DB sqlite).
