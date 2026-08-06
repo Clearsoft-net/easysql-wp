@@ -117,3 +117,7 @@ function wp_create_nonce($action = '')
 {
     return 'test-nonce-' . $action;
 }
+
+// WordPress result-type constants used by ConnectorService::fetch_schema().
+const ARRAY_A = 'ARRAY_A';
+const OBJECT  = 'OBJECT';
