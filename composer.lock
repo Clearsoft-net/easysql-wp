@@ -4,15 +4,15 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a63845a35e02aa766eafedbb40e0b8d3",
+    "content-hash": "49eba2b47042c8dbb13ca51663a2c047",
     "packages": [
         {
             "name": "easysql/sdk",
-            "version": "1.3.0",
+            "version": "1.4.0",
             "dist": {
                 "type": "path",
-                "url": "../easysql-sdk-php",
-                "reference": "30ace97aca41f05e4191ce32b71b6ad526f2fd1b"
+                "url": "../sdk-php",
+                "reference": "450e45af907c244591848c386330d2eda2a0811e"
             },
             "require": {
                 "ext-json": "*",
