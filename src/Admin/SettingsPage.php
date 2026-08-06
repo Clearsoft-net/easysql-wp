@@ -149,6 +149,12 @@ class SettingsPage {
      */
     public function field_api_key(): void {
         $value = $this->get_option('api_key');
+
+        // Show the constant-provided key when nothing is stored yet.
+        if ($value === '' && defined('EASYSQL_API_KEY')) {
+            $value = EASYSQL_API_KEY;
+        }
+
         printf(
             '<input type="password" id="easysql_api_key" name="easysql_settings[api_key]" value="%s" class="regular-text" autocomplete="off" />',
             esc_attr($value)
