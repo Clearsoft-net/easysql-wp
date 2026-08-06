@@ -40,7 +40,7 @@ class QueryService {
         }
 
         $defaults = [
-            'api_key'  => '',
+            'api_key'  => defined('EASYSQL_API_KEY') ? EASYSQL_API_KEY : '',
             'endpoint' => defined('EASYSQL_ENDPOINT') ? EASYSQL_ENDPOINT : 'https://api.easysql.net/v1',
             'timeout'  => 30,
         ];
@@ -124,16 +124,104 @@ class QueryService {
                 $body = [];
             }
 
-            if ($status >= 200 && $status < 300) {
-                return $body;
+            if ($status < 200 || $status >= 300) {
+                return ['error' => $this->extract_error_from_body($body, $status)];
             }
 
-            return ['error' => $this->extract_error_from_body($body, $status)];
+            // Schema-only connector (WordPress): the API generates the SQL but
+            // cannot run it — the plugin must execute it against the local
+            // database and submit the result back to generate the answer.
+            if (! empty($body['needs_local_execution']) && ! empty($body['sql_generated'])) {
+                return $this->execute_locally_and_answer($body);
+            }
+
+            return $body;
         } catch (\Throwable $e) {
             return [
                 'error' => $e->getMessage(),
             ];
         }
+    }
+
+    /**
+     * Run the generated SQL against the local WordPress database ($wpdb) and
+     * submit the rows back to the API so it can produce the natural-language
+     * answer and chart.
+     *
+     * @param  array<string, mixed> $query Initial query response from the API.
+     * @return array<string, mixed>
+     */
+    private function execute_locally_and_answer(array $query): array {
+        $sql = isset($query['sql_generated']) ? (string) $query['sql_generated'] : '';
+        $id  = isset($query['id']) ? (string) $query['id'] : '';
+
+        try {
+            $result_data = $this->run_local_sql($sql);
+        } catch (\Throwable $e) {
+            return [
+                'error' => $e->getMessage(),
+            ];
+        }
+
+        if ($id === '') {
+            return $query;
+        }
+
+        try {
+            $client   = $this->client();
+            $response = $client->getHttpClient()->request(
+                'POST',
+                '/v1/queries/' . rawurlencode($id) . '/answer',
+                [
+                    'json' => ['result_data' => $result_data],
+                ]
+            );
+            $status = $response->getStatusCode();
+            $body   = json_decode((string) $response->getBody(), true);
+            if (is_array($body) === false) {
+                $body = [];
+            }
+
+            if ($status >= 200 && $status < 300) {
+                return $body;
+            }
+
+            // If answering fails, still return what we ran locally so the user
+            // sees something useful.
+            return array_merge($query, ['result_data' => $result_data]);
+        } catch (\Throwable $e) {
+            return array_merge($query, [
+                'error'       => $e->getMessage(),
+                'result_data' => $result_data,
+            ]);
+        }
+    }
+
+    /**
+     * Execute a SELECT query against the local WordPress database.
+     *
+     * @param  string $sql
+     * @return list<array<string, mixed>>
+     */
+    private function run_local_sql(string $sql): array {
+        global $wpdb;
+
+        if (! isset($wpdb) || ! is_object($wpdb) || ! isset($wpdb->dbh)) {
+            throw new \RuntimeException(
+                esc_html__('WordPress database is not available to run the query locally.', 'easysql')
+            );
+        }
+
+        $rows = $wpdb->get_results($sql, ARRAY_A);
+
+        if (is_array($rows) === false) {
+            return [];
+        }
+
+        // Cast values so the JSON payload sent to the API is well-formed.
+        return array_map(function ($row): array {
+            return is_array($row) ? $row : [];
+        }, $rows);
     }
 
     /**
