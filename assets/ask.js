@@ -1,4 +1,4 @@
-/* global jQuery, wpApiSettings, Chart, easysqlAsk */
+/* global jQuery, wpApiSettings, Chart, marked, easysqlAsk */
 
 (function ($) {
     'use strict';
@@ -37,7 +37,7 @@
     // Ask
     // -----------------------------------------------------------------------
 
-    $askBtn.on('click', function () {
+    function submitQuestion() {
         var question = $question.val().trim();
         if (! question) {
             $askStatus.html('<span class="error">Please enter a question.</span>');
@@ -85,15 +85,48 @@
                 $askBtn.prop('disabled', false);
             },
         });
+    }
+
+    $askBtn.on('click', submitQuestion);
+
+    // ENTER submits the question; Shift+ENTER inserts a new line.
+    $question.on('keydown', function (e) {
+        if (e.key === 'Enter' && ! e.shiftKey) {
+            e.preventDefault();
+            submitQuestion();
+        }
     });
+
+    // Escape any raw HTML in the markdown (the marked library does not
+    // sanitize by default). The answer comes from the LLM, so we must not
+    // let it inject markup into the admin page.
+    if (typeof marked !== 'undefined') {
+        var escapeHtml = function (str) {
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        };
+        var renderer = new marked.Renderer();
+        var defaultHtml = renderer.html.bind(renderer);
+        renderer.html = function (html) {
+            return escapeHtml(typeof html === 'string' ? html : '');
+        };
+        marked.setOptions({ renderer: renderer });
+    }
 
     // -----------------------------------------------------------------------
     // Render results
     // -----------------------------------------------------------------------
 
     function renderResults(resp) {
-        // Answer
-        $answer.text(resp.answer || '(empty)');
+        // Answer — render the markdown returned by the API (bold, lists, etc.),
+        // escaping any raw HTML so the LLM output can't inject markup.
+        var answerMarkdown = resp.answer || '(empty)';
+        if (typeof marked !== 'undefined') {
+            $answer.html(marked.parse(answerMarkdown, { breaks: true }));
+        } else {
+            $answer.text(answerMarkdown);
+        }
 
         // SQL
         if (resp.sql_generated) {

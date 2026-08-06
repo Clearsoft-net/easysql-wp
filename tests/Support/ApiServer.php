@@ -63,11 +63,31 @@ final class ApiServer
     }
 
     /**
-     * Remove the state file so the next test class starts with a clean
-     * slate. Call from setUpBeforeClass() in each test class.
+     * Reset between test classes: restart the server on the same port (so the
+     * single-threaded PHP built-in server never hits its ~70-request wall) and
+     * clear any captured bodies. The new process starts with an empty state.
+     * Call from setUpBeforeClass() in each test class.
      */
     public function clearState(): void
     {
-        $this->server->removeStateFile();
+        $this->server->restart();
+        $this->server->clearCapture();
+    }
+
+    /**
+     * Clear the captured request bodies from the test server.
+     */
+    public function clearCapture(): void
+    {
+        $this->server->clearCapture();
+    }
+
+    /**
+     * Return the raw body captured for a route (e.g. 'POST /v1/connectors'),
+     * or null if none was captured.
+     */
+    public function getCapturedBody(string $route): ?string
+    {
+        return $this->server->getCapturedBody($route);
     }
 }

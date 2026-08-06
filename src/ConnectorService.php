@@ -52,8 +52,32 @@ class ConnectorService {
 
         $cached = get_option('easysql_connector', null);
         if (is_array($cached) && isset($cached['id']) && is_string($cached['id'])) {
-            $this->connector = $cached;
-            return $this->connector;
+            $cached_id = $cached['id'];
+
+            $client = $this->query_service->client();
+
+            // Validate the cached connector against the backend. If it no
+            // longer exists (e.g. backend restarted with a fresh DB), fall
+            // through so we can look it up / recreate instead of returning a
+            // stale id that would fail with "Connector not found".
+            try {
+                $check = $client->getHttpClient()->request(
+                    'GET',
+                    '/v1/connectors/' . rawurlencode($cached_id)
+                );
+                if ($check->getStatusCode() >= 200 && $check->getStatusCode() < 300) {
+                    $this->connector = $cached;
+                    return $this->connector;
+                }
+            } catch (\Throwable $e) {
+                // Connection/network error — keep the cached connector rather
+                // than throwing; the caller may be offline.
+                $this->connector = $cached;
+                return $this->connector;
+            }
+
+            // Cached id is gone — ignore it and resolve fresh below.
+            $cached = null;
         }
 
         $client = $this->query_service->client();
