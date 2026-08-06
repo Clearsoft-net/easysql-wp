@@ -98,7 +98,7 @@ make start              # Sobe wp-env (localhost:8888)
 make stop               # Para wp-env
 ```
 
-Local WP via `@wordpress/env` (config em `.wp-env.json`).
+Local WP via `@wordpress/env` (config em `.wp-env.json`). O `make start` roda `scripts/enable-rewrites.sh` após subir o container para habilitar `AllowOverride All` + `.htaccess` (a imagem `wordpress:php*` vem com `AllowOverride None`, o que quebraria o REST `/wp-json/`).
 
 ## Onde mexer para tarefas comuns
 
@@ -124,6 +124,7 @@ Local WP via `@wordpress/env` (config em `.wp-env.json`).
 - SDK referenciado em `composer.json` com `repositories` apontando para `path: ../easysql-sdk-php/` (irmão) com fallback VCS.
 - `admin.js` ainda depende de jQuery — avaliar dispensar em iteração futura.
 - API key armazenada em texto puro no `wp_options` (padrão WP).
+- API key tem fallback para a constante `EASYSQL_API_KEY` (como o endpoint): se `easysql_settings['api_key']` estiver vazia, `QueryService::get_config()` usa `EASYSQL_API_KEY`. No dev local, `.wp-env.json` injeta `EASYSQL_API_KEY=easysql_sk_local_dev_0000000000000000000000` (seed determinístico do backend p/ o usuário `test@test.com`, apenas em DB sqlite).
 
 ## Como manter este arquivo atualizado
 
