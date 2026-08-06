@@ -184,6 +184,14 @@ class Plugin {
                 true
             );
 
+            wp_enqueue_script(
+                'marked',
+                'https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js',
+                [],
+                '12.0.2',
+                true
+            );
+
             // Try to resolve the connector ID server-side so the JS
             // doesn't need an extra round-trip.
             $connector_id = null;
@@ -197,7 +205,7 @@ class Plugin {
             wp_enqueue_script(
                 'easysql-ask',
                 EASYSQL_URL . 'assets/ask.js',
-                ['jquery', 'chart-js'],
+                ['jquery', 'chart-js', 'marked'],
                 filemtime(EASYSQL_DIR . 'assets/ask.js'),
                 true
             );
