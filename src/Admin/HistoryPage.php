@@ -27,8 +27,8 @@ class HistoryPage {
     public function add_submenu_page(): void {
         $this->hook_suffix = add_submenu_page(
             'easysql-ask',
-            __('EasySQL History', 'easysql'),
-            __('History', 'easysql'),
+            __('View all history', 'easysql'),
+            __('View all history', 'easysql'),
             'manage_options',
             'easysql-history',
             [$this, 'render']

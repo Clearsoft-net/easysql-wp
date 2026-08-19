@@ -40,6 +40,16 @@ class SettingsPage {
             'easysql',
             [$this, 'render']
         );
+
+        // Also expose Settings as a submenu item under the EasySQL menu.
+        add_submenu_page(
+            'easysql-ask',
+            __('EasySQL Settings', 'easysql'),
+            __('Settings', 'easysql'),
+            'manage_options',
+            'easysql',
+            [$this, 'render']
+        );
     }
 
     /**
