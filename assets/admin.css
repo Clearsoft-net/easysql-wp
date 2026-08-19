@@ -1,27 +1,5 @@
 /* EasySQL Admin Styles */
 
-.easysql-result-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 1em 0;
-}
-
-.easysql-result-table th,
-.easysql-result-table td {
-    border: 1px solid #ccd0d4;
-    padding: 6px 10px;
-    text-align: left;
-}
-
-.easysql-result-table th {
-    background: #f1f1f1;
-    font-weight: 600;
-}
-
-.easysql-result-table tr:nth-child(even) td {
-    background: #f9f9f9;
-}
-
 #easysql-test-result .success,
 #easysql-connector-status .success {
     color: #46b450;
