@@ -1,0 +1,397 @@
+/* ==========================================================================
+   EasySQL Ask v4 — native WordPress admin look
+   Minimal additions on top of core WP components (postboxes, tablenav,
+   widefat tables, notices). No custom design system.
+   ========================================================================== */
+
+.easysql-ask4 .postbox {
+    margin-bottom: 20px;
+}
+
+/* ---------------------------------------------------------------------------
+   Composer
+--------------------------------------------------------------------------- */
+
+.easysql-ask4-composer .inside {
+    padding: 16px;
+}
+
+.easysql-ask4-question-input {
+    margin-bottom: 8px;
+}
+
+.easysql-ask4-hint {
+    margin-top: 4px;
+}
+
+.easysql-ask4-actions {
+    margin: 12px 0 0;
+    padding: 0;
+}
+
+.easysql-ask4-actions .spinner {
+    float: none;
+    margin: 6px 0 0 10px;
+    vertical-align: middle;
+}
+
+/* ---------------------------------------------------------------------------
+   Error notice (dismissible)
+--------------------------------------------------------------------------- */
+
+.easysql-ask4-notice[hidden] {
+    display: none;
+}
+
+.easysql-ask4-notice p {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0.5em 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Empty state
+--------------------------------------------------------------------------- */
+
+.easysql-ask4-empty {
+    padding: 20px;
+}
+
+.easysql-ask4-empty-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 6px;
+}
+
+.easysql-ask4-empty-desc {
+    margin: 0 0 16px;
+}
+
+.easysql-ask4-empty-label {
+    margin: 0 0 8px;
+}
+
+.easysql-ask4-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Loading
+--------------------------------------------------------------------------- */
+
+.easysql-ask4-loading {
+    padding: 32px 20px;
+}
+
+.easysql-ask4-loading-text {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 4px;
+}
+
+.easysql-ask4-loading-text .spinner {
+    float: none;
+    margin: 0;
+}
+
+.easysql-ask4-loading-elapsed {
+    margin: 0 0 0 30px;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-variant-numeric: tabular-nums;
+}
+
+/* ---------------------------------------------------------------------------
+   Answer
+--------------------------------------------------------------------------- */
+
+.easysql-ask4-answer-meta {
+    margin-top: 0;
+}
+
+.easysql-ask4-answer-body {
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.easysql-ask4-answer-body p {
+    margin: 0 0 12px;
+}
+
+.easysql-ask4-answer-body p:last-child {
+    margin-bottom: 0;
+}
+
+.easysql-ask4-answer-body h1,
+.easysql-ask4-answer-body h2,
+.easysql-ask4-answer-body h3,
+.easysql-ask4-answer-body h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 16px 0 8px;
+}
+
+.easysql-ask4-answer-body code {
+    background: rgba(0, 0, 0, 0.06);
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+}
+
+.easysql-ask4-answer-body pre {
+    background: #f6f7f7;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 10px 12px;
+    overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    font-size: 12.5px;
+}
+
+.easysql-ask4-answer-body blockquote {
+    margin: 0 0 12px;
+    padding: 6px 14px;
+    border-left: 3px solid #c3c4c7;
+    color: #646970;
+    font-style: italic;
+}
+
+.easysql-ask4-answer-body ul,
+.easysql-ask4-answer-body ol {
+    margin: 0 0 12px 22px;
+}
+
+.easysql-ask4-answer-body ul {
+    list-style: disc;
+}
+
+.easysql-ask4-answer-body ol {
+    list-style: decimal;
+}
+
+.easysql-ask4-answer-body li {
+    margin-bottom: 4px;
+}
+
+/* ---------------------------------------------------------------------------
+   Data (table + tablenav)
+--------------------------------------------------------------------------- */
+
+.easysql-ask4-tablenav {
+    margin-bottom: 12px;
+}
+
+.easysql-ask4-tablenav .actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.easysql-ask4-page-size {
+    margin: 0;
+}
+
+.easysql-ask4-table th.is-sortable {
+    cursor: pointer;
+    user-select: none;
+}
+
+.easysql-ask4-table th.is-sortable:hover {
+    color: #135e96;
+}
+
+.easysql-ask4-sort-indicator {
+    display: inline-block;
+    width: 10px;
+    margin-left: 4px;
+    font-size: 10px;
+    color: #646970;
+}
+
+.easysql-ask4-table th.is-sorted-asc .easysql-ask4-sort-indicator,
+.easysql-ask4-table th.is-sorted-desc .easysql-ask4-sort-indicator {
+    color: #135e96;
+}
+
+.easysql-ask4-pagination button[disabled] {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* ---------------------------------------------------------------------------
+   Chart
+--------------------------------------------------------------------------- */
+
+.easysql-ask4-chart-grid {
+    display: flex;
+    gap: 16px;
+}
+
+.easysql-ask4-chart-main {
+    flex: 1 1 auto;
+    max-width: calc(75% - 8px);
+    padding-right: 24px;
+    border-right: 1px solid #ececec;
+}
+
+.easysql-ask4-chart-pie {
+    flex: 1 1 auto;
+    max-width: calc(25% - 8px);
+    min-width: 0;
+}
+
+.easysql-ask4-chart-switcher {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.easysql-ask4-chart-tab.is-active {
+    background: #135e96;
+    border-color: #135e96;
+    color: #fff;
+}
+
+.easysql-ask4-chart-canvas-wrap {
+    position: relative;
+    height: 320px;
+}
+
+.easysql-ask4-chart-pie {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 320px;
+    padding: 24px 0;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.easysql-ask4-chart-pie > div {
+    width: 100%;
+}
+
+@media (max-width: 782px) {
+    .easysql-ask4-chart-grid {
+        flex-direction: column;
+    }
+
+    .easysql-ask4-chart-main,
+    .easysql-ask4-chart-pie {
+        flex: 1 1 auto;
+        max-width: 100%;
+    }
+
+    .easysql-ask4-chart-main {
+        padding-right: 0;
+        border-right: none;
+    }
+
+    .easysql-ask4-chart-canvas-wrap {
+        height: 260px;
+    }
+}
+
+/* ---------------------------------------------------------------------------
+   SQL
+--------------------------------------------------------------------------- */
+
+.easysql-ask4-sql .handle-actions {
+    display: flex;
+    gap: 6px;
+    padding-right: 12px;
+}
+
+.easysql-ask4-sql-pre {
+    background: #f6f7f7;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 12px 14px;
+    margin: 0;
+    max-height: 420px;
+    overflow: auto;
+    font-family: ui-monospace, SFMono-Regular, "Courier New", monospace;
+    font-size: 12.5px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.easysql4-sql-kw  { color: #006799; font-weight: 600; }
+.easysql4-sql-fn  { color: #b06600; }
+.easysql4-sql-str { color: #1a7f37; }
+.easysql4-sql-num { color: #5b3da0; }
+.easysql4-sql-cmt { color: #646970; font-style: italic; }
+
+/* ---------------------------------------------------------------------------
+   Recent queries (side column)
+--------------------------------------------------------------------------- */
+
+.easysql-ask4-recent-list {
+    margin: 0;
+}
+
+.easysql-ask4-recent-list li {
+    margin: 0 0 6px;
+}
+
+.easysql-ask4-recent-btn {
+    display: block;
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    background: #fff;
+    color: #1d2327;
+    font-family: inherit;
+    font-size: 12.5px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.easysql-ask4-recent-btn:hover,
+.easysql-ask4-recent-btn:focus-visible {
+    border-color: #135e96;
+    color: #135e96;
+    outline: none;
+}
+
+.easysql-ask4-recent-question {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.easysql-ask4-recent-meta {
+    display: block;
+    margin-top: 2px;
+    font-size: 11px;
+    color: #646970;
+}
+
+.easysql-ask4-recent-empty {
+    margin: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Responsive tweaks (mobile)
+--------------------------------------------------------------------------- */
+
+@media (max-width: 782px) {
+    .easysql-ask4-suggestions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .easysql-ask4-tablenav .tablenav-pages {
+        float: none;
+        margin-top: 8px;
+    }
+}

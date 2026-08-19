@@ -37,10 +37,14 @@ easysql-wp/
 ├── .wp-env.json               # Config do @wordpress/env para dev local
 ├── assets/
 │   ├── admin.css              # Estilos da tela de settings
-│   └── admin.js               # Test Connection + Connector status + Sync
+│   ├── admin.js               # Test Connection + Connector status + Sync (jQuery)
+│   ├── ask-v4.css             # Estilos da tela Ask v4 (aparência nativa WP: postboxes, tablenav, widefat)
+│   ├── ask-v4.js              # Tela Ask v4: vanilla JS moderno, com sufixo -v4 nos IDs
+│   ├── history.js             # Histórico paginado (jQuery)
+│   └── vendor/                # Libs vendadas (sem CDN): chart.umd.min.js 4.4.7, marked.min.js 12.0.2
 ├── languages/                 # Text-domain "easysql" (vazio por enquanto)
 └── src/
-    ├── Plugin.php             # Container principal: boot, activate, deactivate, hooks
+    ├── Plugin.php             # Container principal: boot, activate, deactivate, hooks, enqueue de assets
     ├── QueryService.php       # Wrapper WP-aware do SDK: config, client, query, test_connection
     ├── ConnectorService.php   # Gerencia o connector "wp" (cria, sync, cache)
     ├── Api/
@@ -48,6 +52,8 @@ easysql-wp/
     │   ├── QueryController.php# Endpoints REST: /query, /test-connection
     │   └── ConnectorController.php # Endpoints REST: /connector, /connector/sync
     └── Admin/
+        ├── AskV4Page.php      # Página top-level EasySQL → Ask (slug easysql-ask, aparência nativa WP)
+        ├── HistoryPage.php    # Página de histórico (tabela paginada)
         └── SettingsPage.php   # Página em Settings → EasySQL (API key, endpoint, timeout, connector status)
 ```
 
@@ -70,6 +76,7 @@ easysql-wp/
 | Método | Rota | Body | Resposta |
 |---|---|---|---|
 | `POST` | `/wp-json/easysql/v1/query` | `{connector_id, question}` | `QueryResponse` ou `{error}` |
+| `GET` | `/wp-json/easysql/v1/queries` | query: `connector_id, page, per_page` | `{items, total, page, total_pages}` ou `{error}` |
 | `GET` | `/wp-json/easysql/v1/test-connection` | — | `{success, message}` |
 | `GET` | `/wp-json/easysql/v1/connector` | — | `ConnectorResponse` ou `{error}` |
 | `POST` | `/wp-json/easysql/v1/connector/sync` | — | `{success}` ou `{success, message}` |
@@ -98,7 +105,7 @@ make start              # Sobe wp-env (localhost:8888)
 make stop               # Para wp-env
 ```
 
-Local WP via `@wordpress/env` (config em `.wp-env.json`). O `make start` roda `scripts/enable-rewrites.sh` após subir o container para habilitar `AllowOverride All` + `.htaccess` (a imagem `wordpress:php*` vem com `AllowOverride None`, o que quebraria o REST `/wp-json/`).
+Local WP via `@wordpress/env` (config em `.wp-env.json`). O `make start` roda `scripts/enable-rewrites.sh` após subir o container para habilitar `AllowOverride All` + `.htaccess` (a imagem `wordpress:php*` vem com `AllowOverride None`, o que quebraria o REST `/wp-json/`). Login do admin local: `admin` / `password` (padrão do `@wordpress/env`).
 
 ## Onde mexer para tarefas comuns
 
@@ -107,13 +114,14 @@ Local WP via `@wordpress/env` (config em `.wp-env.json`). O `make start` roda `s
 - **Mudar extração de erros:** `QueryService::extract_error_from_body()`.
 - **Mudar lógica do connector "wp":** `src/ConnectorService.php`.
 - **Mudar permissões REST:** `QueryController::admin_permission_check()`.
-- **Adicionar texto/asset no admin:** `src/Plugin.php::register_admin_assets()` + `assets/admin.{css,js}`.
+- **Adicionar texto/asset no admin:** `src/Plugin.php::register_admin_assets()` + `assets/admin.{css,js}` / `assets/ask-v4.{css,js}` (tela Ask; strings JS via `easysqlAskV4.i18n`).
+- **Mexer na tela Ask (UX, aparência nativa WP):** `src/Admin/AskV4Page.php` (markup + i18n), `assets/ask-v4.js` (vanilla JS, IDs com sufixo `-v4`), `assets/ask-v4.css` (CSS enxuto, sem design system próprio). Estrutura: usa componentes core do WP — postboxes (`#poststuff` + `columns-2`: composer, answer, data, chart, SQL na coluna principal; recent queries na `postbox-container-1`), `tablenav` + `widefat striped` para a tabela de dados, `notice notice-error inline` para erros, botões `.button`/`.button-primary`/`.button-small`. Resultados empilhados em postboxes (Answer → Data → Chart → SQL), sem abas. Strings JS via `easysqlAskV4.i18n` (mapa em `Plugin::ask_v4_page_i18n()`).
 - **Mexer no lifecycle (activate/deactivate):** `src/Plugin.php::activate()` / `deactivate()`.
 
 ## Pendências conhecidas
 
 - **WP-CLI** marcado como "planned" no README — não implementado.
-- **Páginas admin** (Ask, History, Dashboard, Billing) — pendentes (ver .plan/).
+- **Páginas admin** — Ask e History implementadas; Dashboard/Billing pendentes (ver .plan/).
 
 ## Testes
 
@@ -122,7 +130,7 @@ Local WP via `@wordpress/env` (config em `.wp-env.json`). O `make start` roda `s
 - Cobertura atual: `tests/Unit/QueryServiceTest.php` — 9 casos para `test_connection()` e `query()`.
 - Comando: `composer test` ou `vendor/bin/phpunit --testdox`.
 - SDK referenciado em `composer.json` com `repositories` apontando para `path: ../sdk-php/` (irmão) com fallback VCS.
-- `admin.js` ainda depende de jQuery — avaliar dispensar em iteração futura.
+- `ask-v4.js` é vanilla JS (sem jQuery); `admin.js` e `history.js` ainda dependem de jQuery — avaliar dispensar em iteração futura.
 - API key armazenada em texto puro no `wp_options` (padrão WP).
 - API key tem fallback para a constante `EASYSQL_API_KEY` (como o endpoint): se `easysql_settings['api_key']` estiver vazia, `QueryService::get_config()` usa `EASYSQL_API_KEY`. No dev local, `.wp-env.json` injeta `EASYSQL_API_KEY=easysql_sk_local_dev_0000000000000000000000` (seed determinístico do backend p/ o usuário `test@test.com`, apenas em DB sqlite).
 
