@@ -17,6 +17,17 @@
 defined('ABSPATH') || exit;
 
 // ---------------------------------------------------------------------------
+// Idempotency guard — prevents redeclaring functions/hooks when this file is
+// loaded more than once (e.g. a plugin folder is duplicated or an activation
+// runs while the plugin is already booted). Without this, WordPress fails
+// with "Cannot redeclare easysql_container()".
+// ---------------------------------------------------------------------------
+
+if (defined('EASYSQL_VERSION')) {
+    return;
+}
+
+// ---------------------------------------------------------------------------
 // Autoload
 // ---------------------------------------------------------------------------
 
