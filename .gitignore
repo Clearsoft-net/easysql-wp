@@ -1,5 +1,6 @@
 # Dependencies
 vendor/
+!assets/vendor/
 
 # OS files
 .DS_Store
@@ -15,6 +16,7 @@ Thumbs.db
 
 # wp-env
 .wpenv/
+.wp-env.tmp.json
 
 # Build artifacts
 *.log
