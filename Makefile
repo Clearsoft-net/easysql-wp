@@ -52,4 +52,4 @@ stop:
 	@rm -f .wp-env.tmp.json
 
 test:
-	@echo "No tests defined yet."
+	vendor/bin/phpunit
