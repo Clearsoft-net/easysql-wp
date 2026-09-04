@@ -3,7 +3,7 @@
  * Plugin Name: EasySQL
  * Plugin URI:  https://github.com/Clearsoft-net/easysql-wp
  * Description: Integrate EasySQL into WordPress — run queries, manage data, and build reports with ease.
- * Version:     0.1.0
+ * Version:     1.0.0
  * Author:      Clearsoft
  * Author URI:  https://clearsoft.net
  * License:     MIT
@@ -39,7 +39,7 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
 // Constants
 // ---------------------------------------------------------------------------
 
-define('EASYSQL_VERSION', '0.1.0');
+define('EASYSQL_VERSION', '1.0.0');
 define('EASYSQL_FILE',    __FILE__);
 define('EASYSQL_DIR',     plugin_dir_path(__FILE__));
 define('EASYSQL_URL',     plugin_dir_url(__FILE__));
