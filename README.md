@@ -1,108 +1,128 @@
-# EasySQL WordPress Plugin
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/Clearsoft-net/easysql-brand/main/logo/01-dark-horizontal.svg">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/Clearsoft-net/easysql-brand/main/logo/02-light-horizontal.svg">
+    <img alt="EasySQL Logo" src="https://raw.githubusercontent.com/Clearsoft-net/easysql-brand/main/logo/01-dark-horizontal.svg">
+  </picture>
+</p>
 
-Integrate [EasySQL](https://easysql.net) into WordPress — run queries, manage data, and build reports seamlessly.
+<h1 align="center">EasySQL WordPress Plugin</h1>
+
+<p align="center">
+  <strong>Official WordPress Plugin for <a href="https://easysql.net">EasySQL</a> · A <a href="https://clearsoft.net">Clearsoft</a> Product</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/Clearsoft-net/easysql-wp/actions"><img src="https://img.shields.io/github/actions/workflow/status/Clearsoft-net/easysql-wp/update-sdk.yml?branch=main&style=flat-square" alt="CI Status"></a>
+  <a href="https://wordpress.org"><img src="https://img.shields.io/badge/WordPress-%3E%3D%205.6-blue?style=flat-square&logo=wordpress" alt="WordPress Version"></a>
+  <a href="https://php.net"><img src="https://img.shields.io/badge/PHP-%3E%3D%208.2-777BB4?style=flat-square&logo=php" alt="PHP Version"></a>
+  <a href="https://github.com/Clearsoft-net/easysql-wp/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License"></a>
+  <a href="https://easysql.net"><img src="https://img.shields.io/badge/Product-easysql.net-F97316?style=flat-square" alt="Website"></a>
+  <a href="https://clearsoft.net"><img src="https://img.shields.io/badge/Company-clearsoft.net-0F2B3D?style=flat-square" alt="Company"></a>
+</p>
+
+---
+
+Bring the power of **natural-language database queries** directly into your WordPress admin dashboard. Ask questions about WooCommerce orders, user registrations, custom post types, or analytics in plain English (or Portuguese, Spanish, etc.), and EasySQL will generate and safely execute the SQL query to deliver instant answers, data tables, and interactive charts.
+
+## Key Features
+
+- 💬 **Ask in Natural Language**: Type questions like *"How many WooCommerce orders were completed last week?"* or *"Top 5 most viewed posts this month"*.
+- 📊 **Interactive Data Visualizations**: Automatic bar charts, line graphs, and pie charts rendered with Chart.js.
+- 🔍 **SQL Transparency**: Inspect the exact SQL query generated before or alongside the results.
+- 🛡️ **Safe Local Execution**: Database schema is synced securely, and queries run directly against your WordPress database using `$wpdb`.
+- ⚡ **History & Submenu Navigation**: Quickly access past questions, copy generated SQL, or adjust API settings.
+
+---
 
 ## Requirements
 
-- PHP 7.4 or later
-- WordPress 5.6 or later
-- [EasySQL SDK for PHP](https://github.com/Clearsoft-net/easysql-sdk-php)
+- **WordPress**: 5.6 or later
+- **PHP**: 8.2 or later
+- **EasySQL Account & API Key**: Get one at [easysql.net](https://easysql.net)
+
+---
 
 ## Installation
 
-1. Download the plugin and place it in `/wp-content/plugins/easysql-wp/`.
-2. Run `composer install` inside the plugin directory.
-3. Activate **EasySQL** from the WordPress **Plugins** screen.
-4. Go to **Settings → EasySQL** and enter your API credentials.
+### Option 1: Manual Installation (Release ZIP)
 
-## Usage
+1. Download the latest release from the [Releases](https://github.com/Clearsoft-net/easysql-wp/releases) page.
+2. Unzip and upload the `easysql-wp` folder to your `/wp-content/plugins/` directory.
+3. Activate **EasySQL** from the **Plugins** screen in your WordPress admin dashboard.
+4. Go to **EasySQL → Settings** and enter your API Key.
 
-### Settings
+### Option 2: Composer (Bedrock / Roots)
 
-Navigate to **Settings → EasySQL** to configure:
+If you manage your WordPress site with Composer:
 
-| Field         | Description                                      |
-|---------------|--------------------------------------------------|
-| API Key       | Your EasySQL API key.                            |
-| Endpoint URL  | Read-only. The EasySQL API endpoint URL.         |
-| Timeout       | Request timeout in seconds (1–300, default: 30). |
+```bash
+composer require clearsoft/easysql-wp
+```
 
-The **Endpoint URL** field is shown disabled and cannot be edited from this screen. To change it, set the `EASYSQL_ENDPOINT` constant in `wp-config.php` (or `easysql-wp.php`); defaults to `https://api.easysql.net/v1`.
+---
+
+## Configuration
+
+Navigate to **EasySQL → Settings** in your WordPress admin panel:
+
+| Field | Description |
+|---|---|
+| **API Key** | Your EasySQL API key from [easysql.net](https://easysql.net). |
+| **Endpoint URL** | Read-only by default (`https://api.easysql.net/v1`). |
+| **Timeout** | Request timeout in seconds (1–300, default: 30). |
+
+To configure the endpoint programmatically via `wp-config.php`:
 
 ```php
 define( 'EASYSQL_ENDPOINT', 'https://api.easysql.net/v1' );
+define( 'EASYSQL_API_KEY', 'your-api-key-here' ); // Optional fallback
 ```
 
-Use the **Test Connection** button to verify that the credentials work.
+Use the **Test Connection** button on the Settings screen to verify your API credentials.
 
-### REST API
+---
 
-The plugin exposes the following endpoints (all require `manage_options` capability). Paths below assume the default WordPress REST prefix `wp-json` and **pretty permalinks enabled**; if you've customized the prefix via the `rest_url_prefix` filter or are running with permalinks set to "Plain", adjust the URL accordingly (e.g. `?rest_route=/easysql/v1/query`):
+## REST API Reference
 
-| Method | Route                              | Description                |
-|--------|------------------------------------|----------------------------|
-| `POST` | `/wp-json/easysql/v1/query`        | Ask the API a question against a connector. Returns a `QueryResponse`. |
-| `GET`  | `/wp-json/easysql/v1/test-connection` | Ping the EasySQL API.   |
+The plugin provides authenticated REST endpoints (requires `manage_options` capability and a valid `X-WP-Nonce` header):
 
-The plugin is a thin wrapper over the [EasySQL SDK](https://github.com/Clearsoft-net/easysql-sdk-php). Queries are **natural-language → SQL**: you send a `connector_id` and a `question`, the API generates (and runs) the SQL and returns the answer, the generated SQL, and the result data. This is the model the underlying API supports — raw SQL execution is not part of the API surface.
+| Method | Route | Description |
+|---|---|---|
+| `POST` | `/wp-json/easysql/v1/query` | Ask a natural-language question against a connector. |
+| `GET` | `/wp-json/easysql/v1/test-connection` | Ping the EasySQL API to verify credentials. |
 
-#### Example: asking a question
+### Example Request
 
 ```bash
 curl -X POST https://example.com/wp-json/easysql/v1/query \
   -H "Content-Type: application/json" \
   -H "X-WP-Nonce: <nonce>" \
-  -d '{"connector_id": "f0e8...-uuid", "question": "How many users signed up last month?"}'
+  -d '{
+    "connector_id": "conn_abc123",
+    "question": "How many users registered in the last 30 days?"
+  }'
 ```
 
-Response (200, trimmed):
+---
 
-```json
-{
-  "id": "qry_abc",
-  "question": "How many users signed up last month?",
-  "sql_generated": "SELECT COUNT(*) AS n FROM users WHERE created_at >= NOW() - INTERVAL '1 month'",
-  "answer": "There were 128 new users last month.",
-  "chart_config": null,
-  "error": null,
-  "result_data": [{"n": 128}],
-  "created_at": "2025-01-15T10:32:00Z"
-}
-```
+## Development & Contributing
 
-On error, the response is `{"error": "<message>"}` with HTTP 400 (e.g. invalid `connector_id`, auth failure, or a server-side query error returned by the API).
-
-### WP-CLI (planned)
-
-WP-CLI commands will be available in a future release.
-
-## Development
+Contributions are welcome! Please review our **[Contributing Guidelines](https://github.com/Clearsoft-net/easysql-wp/blob/main/CONTRIBUTING.md)** for setup instructions and code standards.
 
 ```bash
 git clone https://github.com/Clearsoft-net/easysql-wp.git
 cd easysql-wp
 composer install
+composer test       # run PHPUnit tests
+composer lint       # check WordPress Coding Standards (WPCS)
+composer lint:fix   # auto-fix style issues
 ```
 
-Run PHPCS to check code style:
-
-```bash
-composer lint
-```
-
-### Coding standards
-
-This plugin follows the [WordPress Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/php/) with PSR-4 autoloading for the `EasySQL\` namespace.
-
-## Changelog
-
-### 0.1.0
-
-- Initial release.
-- Admin settings page (API key, read-only endpoint, timeout).
-- REST endpoint for natural-language queries (NL → SQL via the EasySQL API).
-- Connection test utility.
+---
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+This project is open source and licensed under the [MIT License](./LICENSE).
+
+Maintained by **[Clearsoft](https://clearsoft.net)**.
