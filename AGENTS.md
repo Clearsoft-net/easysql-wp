@@ -68,10 +68,11 @@ easysql-wp/
 
 ## Configuração e desenvolvimento
 
-- Settings em `wp_options.easysql_settings`: API key e timeout. API key pode vir de `EASYSQL_API_KEY`.
-- Endpoint configurável em `EASYSQL_ENDPOINT` (base sem `/v1`; default `https://api.easysql.net`).
+- Settings em `wp_options.easysql_settings`: API key e timeout. A API key também pode vir da constante `EASYSQL_API_KEY` (`make start EASYSQL_API_KEY=...`, `export EASYSQL_API_KEY=...` ou da tela de Settings).
+- Endpoint configurável em `EASYSQL_ENDPOINT` (base sem `/v1`; default `https://api.easysql.net`). No WP local vale o valor do `.wp-env.json`, e `make start EASYSQL_ENDPOINT=...` sobrescreve (API local em `:8787` ou o mock abaixo).
+- Nunca coloque API key real no `.wp-env.json` (arquivo versionado): passe por `EASYSQL_API_KEY` ou salve em Settings.
 - Composer: `composer install`; lint WPCS: `composer lint` (o repositório ainda tem violações pré-existentes de naming/docblocks); testes: `composer test`.
 - Testes de integração (connector real contra MySQL em `127.0.0.1:3307`, com socket exposto em `/tmp/easysql-wp-mysql-sock/mysqld.sock`): `make db-up` e `make test-integration`; `make db-down` derruba o banco de teste. Sem servidor, os testes de integração são pulados.
-- WP local via `make start`/`make stop`; `make start` habilita rewrites e compila `pdo_mysql` no container (a imagem `wordpress:php*` só traz mysqli).
+- WP local via `make start`/`make stop`; `make start` habilita rewrites e compila `pdo_mysql` nos containers web e cli (~1 min por container; enquanto compila, a tela de Settings exibe erro de extensão ausente — basta recarregar depois).
 - Fluxo manual sem a API real: `php -S 0.0.0.0:8010 tests/Support/HealthServerRouter.php` serve respostas canned (`/v1/health`, `/v1/connections*`, `/v1/queries`) e grava os corpos recebidos em `/tmp/easysql_test_capture.json`; suba o WP com `make start EASYSQL_ENDPOINT=http://host.containers.internal:8010`.
 - Não adicione comentários ao código sem solicitação.
