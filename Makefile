@@ -53,10 +53,11 @@ phpcbf:
 PORT ?= 8888
 WP_ENV_CONFIG ?= .wp-env.tmp.json
 CONFIG_FLAG = $(if $(wildcard $(WP_ENV_CONFIG)),--config $(WP_ENV_CONFIG),)
-EASYSQL_ENDPOINT ?= http://host.containers.internal:8000
+EASYSQL_ENDPOINT ?=
+EASYSQL_API_KEY ?=
 
 start:
-	@python3 -c "import json; c=json.load(open('.wp-env.json')); c['config']['EASYSQL_ENDPOINT']='$(EASYSQL_ENDPOINT)'; json.dump(c, open('$(WP_ENV_CONFIG)','w'))"
+	@python3 -c "import json; c=json.load(open('.wp-env.json')); s=c['config']; s['EASYSQL_ENDPOINT']='$(EASYSQL_ENDPOINT)' or s.get('EASYSQL_ENDPOINT','https://api.easysql.net'); s['EASYSQL_API_KEY']='$(EASYSQL_API_KEY)' or s.get('EASYSQL_API_KEY',''); json.dump(c, open('$(WP_ENV_CONFIG)','w'))"
 	PODMAN_SHORTNAME_ALIASING=0 WP_ENV_PORT=$(PORT) npx -y @wordpress/env start --config $(WP_ENV_CONFIG)
 	@bash scripts/enable-rewrites.sh
 	@bash scripts/enable-pdo-mysql.sh

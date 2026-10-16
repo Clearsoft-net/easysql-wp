@@ -65,6 +65,8 @@ Ideas and feature suggestions are welcome!
 | `make db-up` / `make db-down` | Start/stop the MySQL used by the integration tests |
 | `make test-integration` | Run the integration tests against that MySQL |
 
+Use `make start EASYSQL_API_KEY=...` (or the plugin's Settings screen) for your API key — never commit a real key in `.wp-env.json`, which is tracked by git.
+
 Ensure all tests pass before opening a Pull Request:
 ```bash
 composer test
