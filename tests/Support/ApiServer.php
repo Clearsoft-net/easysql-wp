@@ -13,7 +13,7 @@ namespace EasySQL\Tests\Support;
  *
  * Usage from any test class:
  *
- *   ApiServer::instance()->setResponse('GET /v1/connectors', 200, '...');
+ *   ApiServer::instance()->setResponse('GET /v1/connections', 200, '...');
  */
 final class ApiServer
 {
@@ -83,11 +83,16 @@ final class ApiServer
     }
 
     /**
-     * Return the raw body captured for a route (e.g. 'POST /v1/connectors'),
+     * Return the raw body captured for a route (e.g. 'POST /v1/connections'),
      * or null if none was captured.
      */
     public function getCapturedBody(string $route): ?string
     {
         return $this->server->getCapturedBody($route);
+    }
+
+    public function getCapturedRequests(): array
+    {
+        return $this->server->getCapturedRequests();
     }
 }

@@ -15,8 +15,9 @@
         return;
     }
 
-    var connectorId = null;
+    var connectionId = null;
     var currentPage = 1;
+    var cursors = [null];
 
     // -----------------------------------------------------------------------
     // Bootstrap: load connector, then load first page
@@ -24,18 +25,18 @@
 
     function loadConnectorAndHistory() {
         $.ajax({
-            url: wpApiSettings.root + 'easysql/v1/connector',
+            url: wpApiSettings.root + 'easysql/v1/connection',
             method: 'GET',
             beforeSend: function (xhr) {
                 xhr.setRequestHeader('X-WP-Nonce', wpApiSettings.nonce);
             },
             success: function (resp) {
-                connectorId = resp.id;
+                connectionId = resp.id;
                 loadPage(1);
             },
             error: function () {
                 $tbody.html(
-                    '<tr><td colspan="4"><span class="error">Could not load connector.</span></td></tr>'
+                    '<tr><td colspan="4"><span class="error">Could not load WordPress connection.</span></td></tr>'
                 );
             },
         });
@@ -46,7 +47,7 @@
     // -----------------------------------------------------------------------
 
     function loadPage(page) {
-        if (! connectorId) {
+        if (! connectionId) {
             return;
         }
 
@@ -60,26 +61,29 @@
             url: wpApiSettings.root + 'easysql/v1/queries',
             method: 'GET',
             data: {
-                connector_id: connectorId,
-                page: page,
-                per_page: 15,
+                connection_id: connectionId,
+                cursor: cursors[page - 1],
+                limit: 15,
             },
+
             beforeSend: function (xhr) {
                 xhr.setRequestHeader('X-WP-Nonce', wpApiSettings.nonce);
             },
             success: function (resp) {
                 renderRows(resp.items || []);
+                nextCursor = resp.next_cursor || null;
+                if (nextCursor && cursors[page] === undefined) {
+                    cursors[page] = nextCursor;
+                }
                 updatePagination(resp);
             },
             error: function (xhr) {
                 var msg = 'Could not load history.';
-                try {
-                    var body = xhr.responseJSON;
-                    if (body && body.error) {
-                        msg = body.error;
-                    }
-                } catch (_) { /* ignore */ }
-                $tbody.html('<tr><td colspan="4"><span class="error">' + msg + '</span></td></tr>');
+                var body = xhr.responseJSON;
+                if (body && body.error) {
+                    msg = body.error;
+                }
+                $tbody.html('<tr><td colspan="4"><span class="error">' + escapeHtml(msg) + '</span></td></tr>');
                 $pagination.hide();
             },
         });
@@ -123,15 +127,15 @@
     // -----------------------------------------------------------------------
 
     function updatePagination(resp) {
-        var total      = resp.total || 0;
-        var totalPages = resp.total_pages || 1;
+        var items = resp.items || [];
+        var hasNext = !! resp.next_cursor;
 
-        $total.text(total + ' item' + (total !== 1 ? 's' : ''));
-        $curPage.text(resp.page || 1);
-        $totPages.text(totalPages);
+        $total.text(items.length + ' items');
+        $curPage.text(currentPage);
+        $totPages.text(hasNext ? currentPage + '+' : currentPage);
 
         $prev.prop('disabled', currentPage <= 1);
-        $next.prop('disabled', currentPage >= totalPages);
+        $next.prop('disabled', ! hasNext);
 
         $pagination.show();
     }
@@ -143,7 +147,9 @@
     });
 
     $next.on('click', function () {
-        loadPage(currentPage + 1);
+        if (nextCursor) {
+            loadPage(currentPage + 1);
+        }
     });
 
     // -----------------------------------------------------------------------

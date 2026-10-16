@@ -167,14 +167,20 @@ final class HealthServer
      */
     public function getCapturedBody(string $route): ?string
     {
+        $data = $this->getCapturedRequests();
+        return isset($data[$route]) ? (string) $data[$route] : null;
+    }
+
+    public function getCapturedRequests(): array
+    {
         $url = $this->getBaseUrl() . '/__get_capture';
         $ctx = stream_context_create(['http' => ['timeout' => 5, 'ignore_errors' => true]]);
         $raw = @file_get_contents($url, false, $ctx);
         if ($raw === false) {
-            return null;
+            return [];
         }
         $data = json_decode($raw, true);
-        return (is_array($data) && isset($data[$route])) ? (string) $data[$route] : null;
+        return is_array($data) ? $data : [];
     }
 
     public function __destruct()

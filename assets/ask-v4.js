@@ -60,7 +60,7 @@
     // -----------------------------------------------------------------------
 
     var state = {
-        connectorId: easysqlAskV4.connector_id || null,
+        connectionId: easysqlAskV4.connection_id || null,
         isSubmitting: false,
         reqId: 0,
         result: null,
@@ -372,10 +372,10 @@
         }
         if (els.answerMeta) {
             var parts = [];
-            if (resp.connectorName) {
-                parts.push(resp.connectorName);
+            if (resp.connectionName) {
+                parts.push(resp.connectionName);
             }
-            var when = formatRelative(resp.date);
+            var when = formatRelative(resp.created_at);
             if (when) {
                 parts.push(when);
             }
@@ -856,11 +856,11 @@
     // -----------------------------------------------------------------------
 
     function loadRecentQueries() {
-        if (! state.connectorId) {
+        if (! state.connectionId) {
             return;
         }
-        fetch(wpApiSettings.root + 'easysql/v1/queries?connector_id='
-            + encodeURIComponent(state.connectorId) + '&page=1&per_page=10', {
+        fetch(wpApiSettings.root + 'easysql/v1/queries?connection_id='
+            + encodeURIComponent(state.connectionId) + '&limit=10', {
             headers: { 'X-WP-Nonce': wpApiSettings.nonce }
         })
             .then(function (resp) {
@@ -960,8 +960,8 @@
             renderError(t('empty_question'), false);
             return;
         }
-        if (! state.connectorId) {
-            renderError(t('no_connector'), false);
+        if (! state.connectionId) {
+            renderError(t('no_connection'), false);
             return;
         }
         if (state.isSubmitting) {
@@ -983,7 +983,7 @@
                 'X-WP-Nonce': wpApiSettings.nonce
             },
             body: JSON.stringify({
-                connector_id: state.connectorId,
+                connection_id: state.connectionId,
                 question: question
             })
         })
@@ -1041,7 +1041,7 @@
     // Init
     // -----------------------------------------------------------------------
 
-    if (state.connectorId) {
+    if (state.connectionId) {
         loadRecentQueries();
     }
 }());

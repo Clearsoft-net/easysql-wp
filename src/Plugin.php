@@ -35,7 +35,7 @@ class Plugin {
     /**
      * @var ConnectorService|null
      */
-    private $connector_service;
+    private $connection_service;
 
     // -----------------------------------------------------------------------
     // Lifecycle
@@ -61,7 +61,7 @@ class Plugin {
             return;
         }
 
-        $min_php = '7.4';
+        $min_php = '8.2';
         if (version_compare(PHP_VERSION, $min_php, '<')) {
             deactivate_plugins(plugin_basename(EASYSQL_FILE));
             wp_die(
@@ -99,13 +99,13 @@ class Plugin {
         add_action('admin_enqueue_scripts', [$this, 'register_admin_assets']);
 
         // REST API
-        $router = new Api\Router($this->query_service, $this->connector_service);
+        $router = new Api\Router($this->query_service, $this->connection_service);
         $router->register();
     }
 
     private function init_services(): void {
         $this->query_service     = new QueryService();
-        $this->connector_service = new ConnectorService($this->query_service);
+        $this->connection_service = new ConnectorService($this->query_service);
     }
 
     private function init_admin(): void {
@@ -198,13 +198,11 @@ class Plugin {
                 true
             );
 
-            // Resolve connector ID server-side (same backend as v2/v3).
-            $connector_id = null;
+            $connection_id = null;
             try {
-                $connector    = $this->connector_service->get_or_create();
-                $connector_id = $connector['id'] ?? null;
+                $connection    = $this->connection_service->get_or_create();
+                $connection_id = $connection['id'] ?? null;
             } catch (\Throwable $e) {
-                // Connector not available yet — ask-v4.js will prompt the user.
             }
 
             wp_enqueue_script(
@@ -219,7 +217,7 @@ class Plugin {
                 'easysql-ask-v4',
                 'easysqlAskV4',
                 [
-                    'connector_id' => $connector_id,
+                    'connection_id' => $connection_id,
                     'i18n'         => $this->ask_v4_page_i18n(),
                 ]
             );
@@ -249,10 +247,10 @@ class Plugin {
     }
 
     /**
-     * Return the connector service instance.
+     * Return the WordPress connection service instance.
      */
-    public function connector_service(): ConnectorService {
-        return $this->connector_service;
+    public function connection_service(): ConnectorService {
+        return $this->connection_service;
     }
 
 	/**
@@ -264,7 +262,7 @@ class Plugin {
 		return array(
 			'thinking'       => __( 'Analyzing your question…', 'easysql' ),
 			'empty_question' => __( 'Please enter a question.', 'easysql' ),
-			'no_connector'   => __( 'No database connector available. Configure EasySQL in Settings → EasySQL first.', 'easysql' ),
+			'no_connection'   => __( 'No WordPress connection available. Configure EasySQL in Settings → EasySQL first.', 'easysql' ),
 			'retry'          => __( 'Retry', 'easysql' ),
 			'request_failed' => __( 'Request failed.', 'easysql' ),
 			// translators: %1$s: first row number, %2$s: last row number, %3$s: total row count.

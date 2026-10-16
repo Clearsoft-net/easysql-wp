@@ -4,6 +4,8 @@
  * Plugin URI:  https://github.com/Clearsoft-net/easysql-wp
  * Description: Integrate EasySQL into WordPress — run queries, manage data, and build reports with ease.
  * Version:     1.0.0
+ * Requires at least: 5.6
+ * Requires PHP: 8.2
  * Author:      Clearsoft
  * Author URI:  https://clearsoft.net
  * License:     MIT
