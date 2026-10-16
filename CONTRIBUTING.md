@@ -36,7 +36,7 @@ Ideas and feature suggestions are welcome!
 
 ### Prerequisites
 
-- [PHP](https://www.php.net/) (version 8.2 or newer)
+- [PHP](https://www.php.net/) (version 8.2 or newer) with the `pdo_mysql` extension
 - [Composer](https://getcomposer.org/) (version 2.x)
 - [Node.js](https://nodejs.org/) & [npm](https://www.npmjs.com/) (for `@wordpress/env` if using Docker-based dev environment)
 - Git
@@ -58,9 +58,12 @@ Ideas and feature suggestions are welcome!
 
 | Command | Description |
 |---|---|
-| `composer test` | Run PHPUnit test suite |
+| `composer test` | Run PHPUnit test suite (includes integration tests, skipped without a database) |
 | `composer lint` | Check PHP code style against WordPress Coding Standards (WPCS) |
 | `composer lint:fix` | Automatically fix coding style violations with PHPCBF |
+| `make start` / `make stop` | Start/stop the local WordPress (`wp-env`) environment |
+| `make db-up` / `make db-down` | Start/stop the MySQL used by the integration tests |
+| `make test-integration` | Run the integration tests against that MySQL |
 
 Ensure all tests pass before opening a Pull Request:
 ```bash
