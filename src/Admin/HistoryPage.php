@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace EasySQL\Admin;
 
 /**
- * Admin page showing paginated query history for the "wp" connector.
+ * Admin page showing cursor-paginated query history for the WordPress connection.
  */
 class HistoryPage {
 

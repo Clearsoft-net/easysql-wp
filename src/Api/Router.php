@@ -42,7 +42,7 @@ class Router {
      * Instantiate controllers and register their routes.
      */
     public function register_routes(): void {
-        $query_controller = new QueryController($this->query_service);
+        $query_controller = new QueryController($this->query_service, $this->connector_service);
         $query_controller->register_routes();
 
         if ($this->connector_service !== null) {

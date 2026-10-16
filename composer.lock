@@ -4,56 +4,34 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0605c0833f988c7e699921d5401f7877",
+    "content-hash": "50c610117c2b1dd5090202562dd36b67",
     "packages": [
         {
-            "name": "clearsoft/easysql-sdk",
-            "version": "1.5.0",
+            "name": "clearsoft/easysql-client",
+            "version": "v4.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Clearsoft-net/easysql-php-client.git",
+                "reference": "1d41b3a8a41c57534a1c309c60397b01359e9573"
+            },
             "dist": {
-                "type": "path",
-                "url": "../sdk-php",
-                "reference": "d0d6dbb8625ae78bed2976e0e9b8def83d1cb9d6"
+                "type": "zip",
+                "url": "https://api.github.com/repos/Clearsoft-net/easysql-php-client/zipball/1d41b3a8a41c57534a1c309c60397b01359e9573",
+                "reference": "1d41b3a8a41c57534a1c309c60397b01359e9573",
+                "shasum": ""
             },
             "require": {
                 "ext-json": "*",
                 "guzzlehttp/guzzle": "^7.0",
                 "php": ">=8.2"
             },
-            "require-dev": {
-                "illuminate/contracts": "^11.0",
-                "illuminate/support": "^11.0",
-                "orchestra/testbench": "^9.0",
-                "phpunit/phpunit": "^11.0"
-            },
-            "suggest": {
-                "illuminate/support": "Required to use the Laravel Service Provider and Facade (^11.0)"
-            },
             "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Clearsoft\\EasySql\\Laravel\\EasySqlServiceProvider"
-                    ],
-                    "aliases": {
-                        "EasySQL": "Clearsoft\\EasySql\\Laravel\\Facades\\EasySQL"
-                    }
-                }
-            },
             "autoload": {
-                "files": [
-                    "src/token-store.php"
-                ],
                 "psr-4": {
-                    "Clearsoft\\EasySQL\\SDK\\": "src/",
-                    "Clearsoft\\EasySql\\Laravel\\": "src/Laravel/"
+                    "Clearsoft\\EasySQL\\Client\\": "src/"
                 }
             },
-            "autoload-dev": {
-                "psr-4": {
-                    "Clearsoft\\EasySQL\\SDK\\Tests\\": "tests/",
-                    "Clearsoft\\EasySql\\Laravel\\Tests\\": "tests/Laravel/"
-                }
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -64,16 +42,61 @@
                     "homepage": "https://clearsoft.net"
                 }
             ],
-            "description": "EasySQL API PHP & Laravel SDK — Ask questions in natural language to your MySQL, MariaDB or PostgreSQL databases.",
+            "description": "EasySQL API client package — auto-generated from the OpenAPI spec (client package of the PHP SDK).",
             "homepage": "https://easysql.net",
             "keywords": [
-                "ai",
                 "api",
                 "clearsoft",
-                "database",
                 "easysql",
-                "laravel",
-                "llm",
+                "php",
+                "sdk"
+            ],
+            "support": {
+                "issues": "https://github.com/Clearsoft-net/easysql-php/issues",
+                "source": "https://github.com/Clearsoft-net/easysql-php"
+            },
+            "time": "2026-10-11T04:04:50+00:00"
+        },
+        {
+            "name": "clearsoft/easysql-common",
+            "version": "v4.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Clearsoft-net/easysql-php-common.git",
+                "reference": "2dcf9f19bbef1af4c548f710355d4d52dd20169c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Clearsoft-net/easysql-php-common/zipball/2dcf9f19bbef1af4c548f710355d4d52dd20169c",
+                "reference": "2dcf9f19bbef1af4c548f710355d4d52dd20169c",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Clearsoft\\EasySQL\\Common\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Clearsoft",
+                    "email": "contact@clearsoft.net",
+                    "homepage": "https://clearsoft.net"
+                }
+            ],
+            "description": "Shared code for the EasySQL PHP SDK packages (SQL safety validation, credential sanitization).",
+            "homepage": "https://easysql.net",
+            "keywords": [
+                "clearsoft",
+                "common",
+                "easysql",
                 "php",
                 "sdk",
                 "sql"
@@ -82,10 +105,137 @@
                 "issues": "https://github.com/Clearsoft-net/easysql-php/issues",
                 "source": "https://github.com/Clearsoft-net/easysql-php"
             },
-            "transport-options": {
-                "symlink": false,
-                "relative": true
-            }
+            "time": "2026-10-15T15:04:22+00:00"
+        },
+        {
+            "name": "clearsoft/easysql-connectors",
+            "version": "v4.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Clearsoft-net/easysql-php-connectors.git",
+                "reference": "dd81ecc3f7172cbb1b599ff2d0cb5980cbe4f430"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Clearsoft-net/easysql-php-connectors/zipball/dd81ecc3f7172cbb1b599ff2d0cb5980cbe4f430",
+                "reference": "dd81ecc3f7172cbb1b599ff2d0cb5980cbe4f430",
+                "shasum": ""
+            },
+            "require": {
+                "clearsoft/easysql-common": "^4.0",
+                "ext-pdo": "*",
+                "php": ">=8.2"
+            },
+            "suggest": {
+                "ext-curl": "Required for the ClickHouse, Trino, Cloudflare D1 and remote libSQL connectors",
+                "ext-pdo_duckdb": "Required for the DuckDB connector",
+                "ext-pdo_firebird": "Required for the Firebird connector",
+                "ext-pdo_ibm": "Required for the Db2 connector",
+                "ext-pdo_mysql": "Required for the MySQL/MariaDB connector",
+                "ext-pdo_oci": "Required for the Oracle connector",
+                "ext-pdo_odbc": "Required for the Snowflake and SAP HANA connectors",
+                "ext-pdo_pgsql": "Required for the PostgreSQL connector",
+                "ext-pdo_sqlite": "Required for the SQLite connector",
+                "ext-pdo_sqlsrv": "Required for the SQL Server connector",
+                "google/cloud-bigquery": "Required for the BigQuery connector"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Clearsoft\\EasySQL\\Connectors\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Clearsoft",
+                    "email": "contact@clearsoft.net",
+                    "homepage": "https://clearsoft.net"
+                }
+            ],
+            "description": "EasySQL connector package — local schema introspection and SELECT execution for MySQL/MariaDB, PostgreSQL, SQLite, ClickHouse, SQL Server, Oracle, Firebird, Db2, DuckDB, libSQL, Cloudflare D1, Snowflake, BigQuery, Trino and SAP HANA.",
+            "homepage": "https://easysql.net",
+            "keywords": [
+                "bigquery",
+                "clearsoft",
+                "clickhouse",
+                "connector",
+                "d1",
+                "database",
+                "db2",
+                "duckdb",
+                "easysql",
+                "firebird",
+                "hana",
+                "libsql",
+                "mariadb",
+                "mysql",
+                "oracle",
+                "php",
+                "postgres",
+                "sdk",
+                "snowflake",
+                "sqlite",
+                "sqlserver",
+                "trino"
+            ],
+            "support": {
+                "issues": "https://github.com/Clearsoft-net/easysql-php/issues",
+                "source": "https://github.com/Clearsoft-net/easysql-php"
+            },
+            "time": "2026-10-16T00:15:00+00:00"
+        },
+        {
+            "name": "clearsoft/easysql-schema-generation",
+            "version": "v4.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Clearsoft-net/easysql-php-schema-generation.git",
+                "reference": "25f56a41ab336a2174da27e27c8d3d8ff61bf015"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Clearsoft-net/easysql-php-schema-generation/zipball/25f56a41ab336a2174da27e27c8d3d8ff61bf015",
+                "reference": "25f56a41ab336a2174da27e27c8d3d8ff61bf015",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Clearsoft\\EasySQL\\SchemaGeneration\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Clearsoft",
+                    "email": "contact@clearsoft.net",
+                    "homepage": "https://clearsoft.net"
+                }
+            ],
+            "description": "EasySQL schema generation package — transforms raw connector introspection output into the schema payload the API consumes.",
+            "homepage": "https://easysql.net",
+            "keywords": [
+                "clearsoft",
+                "easysql",
+                "php",
+                "schema",
+                "sdk"
+            ],
+            "support": {
+                "issues": "https://github.com/Clearsoft-net/easysql-php/issues",
+                "source": "https://github.com/Clearsoft-net/easysql-php"
+            },
+            "time": "2026-10-15T15:04:09+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
@@ -695,16 +845,16 @@
         },
         {
             "name": "symfony/polyfill-php80",
-            "version": "v1.37.0",
+            "version": "v1.43.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/polyfill-php80.git",
-                "reference": "dfb55726c3a76ea3b6459fcfda1ec2d80a682411"
+                "reference": "9c6a5d6b01ca51d486c813e9a9c0ed55f208bb74"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/polyfill-php80/zipball/dfb55726c3a76ea3b6459fcfda1ec2d80a682411",
-                "reference": "dfb55726c3a76ea3b6459fcfda1ec2d80a682411",
+                "url": "https://api.github.com/repos/symfony/polyfill-php80/zipball/9c6a5d6b01ca51d486c813e9a9c0ed55f208bb74",
+                "reference": "9c6a5d6b01ca51d486c813e9a9c0ed55f208bb74",
                 "shasum": ""
             },
             "require": {
@@ -755,7 +905,7 @@
                 "shim"
             ],
             "support": {
-                "source": "https://github.com/symfony/polyfill-php80/tree/v1.37.0"
+                "source": "https://github.com/symfony/polyfill-php80/tree/v1.43.0"
             },
             "funding": [
                 {
@@ -775,7 +925,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-04-10T16:19:22+00:00"
+            "time": "2026-09-25T15:50:05+00:00"
         }
     ],
     "packages-dev": [
@@ -937,16 +1087,16 @@
         },
         {
             "name": "nikic/php-parser",
-            "version": "v5.8.0",
+            "version": "v5.9.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nikic/PHP-Parser.git",
-                "reference": "044a6a392ff8ad0d61f14370a5fbbd0a0107152f"
+                "reference": "9e33da9553fe7786f0962b35f4e4ecf01be89def"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/044a6a392ff8ad0d61f14370a5fbbd0a0107152f",
-                "reference": "044a6a392ff8ad0d61f14370a5fbbd0a0107152f",
+                "url": "https://api.github.com/repos/nikic/PHP-Parser/zipball/9e33da9553fe7786f0962b35f4e4ecf01be89def",
+                "reference": "9e33da9553fe7786f0962b35f4e4ecf01be89def",
                 "shasum": ""
             },
             "require": {
@@ -988,9 +1138,9 @@
             ],
             "support": {
                 "issues": "https://github.com/nikic/PHP-Parser/issues",
-                "source": "https://github.com/nikic/PHP-Parser/tree/v5.8.0"
+                "source": "https://github.com/nikic/PHP-Parser/tree/v5.9.0"
             },
-            "time": "2026-07-04T14:30:18+00:00"
+            "time": "2026-09-13T18:51:52+00:00"
         },
         {
             "name": "phar-io/manifest",
@@ -1287,16 +1437,16 @@
         },
         {
             "name": "phpunit/php-code-coverage",
-            "version": "14.3.2",
+            "version": "14.4.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/php-code-coverage.git",
-                "reference": "93d62632fb675b76c9b941fdcfcfa10ffb9dea75"
+                "reference": "f1e54f06b6b4cea73cd6104ba3c0cfa0efa6d73f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/93d62632fb675b76c9b941fdcfcfa10ffb9dea75",
-                "reference": "93d62632fb675b76c9b941fdcfcfa10ffb9dea75",
+                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/f1e54f06b6b4cea73cd6104ba3c0cfa0efa6d73f",
+                "reference": "f1e54f06b6b4cea73cd6104ba3c0cfa0efa6d73f",
                 "shasum": ""
             },
             "require": {
@@ -1304,18 +1454,18 @@
                 "ext-libxml": "*",
                 "ext-mbstring": "*",
                 "ext-xmlwriter": "*",
-                "nikic/php-parser": "^5.8.0",
+                "nikic/php-parser": "^5.9.0",
                 "php": ">=8.4",
-                "phpunit/php-text-template": "^6.0",
+                "phpunit/php-text-template": "^6.0.1",
                 "sebastian/complexity": "^6.0",
-                "sebastian/environment": "^9.3.2",
+                "sebastian/environment": "^9.3.3",
                 "sebastian/git-state": "^1.0",
                 "sebastian/lines-of-code": "^5.0.2",
                 "sebastian/version": "^7.0",
                 "theseer/tokenizer": "^2.0.1"
             },
             "require-dev": {
-                "phpunit/phpunit": "^13.3.2"
+                "phpunit/phpunit": "^13.3.6"
             },
             "suggest": {
                 "ext-pcov": "PHP extension that provides line coverage",
@@ -1324,7 +1474,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-main": "14.3.x-dev"
+                    "dev-main": "14.4.x-dev"
                 }
             },
             "autoload": {
@@ -1353,7 +1503,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/php-code-coverage/issues",
                 "security": "https://github.com/sebastianbergmann/php-code-coverage/security/policy",
-                "source": "https://github.com/sebastianbergmann/php-code-coverage/tree/14.3.2"
+                "source": "https://github.com/sebastianbergmann/php-code-coverage/tree/14.4.1"
             },
             "funding": [
                 {
@@ -1373,7 +1523,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-09-04T03:46:43+00:00"
+            "time": "2026-10-03T14:05:38+00:00"
         },
         {
             "name": "phpunit/php-file-iterator",
@@ -1526,23 +1676,23 @@
         },
         {
             "name": "phpunit/php-text-template",
-            "version": "6.0.0",
+            "version": "6.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/php-text-template.git",
-                "reference": "a47af19f93f76aa3368303d752aa5272ca3299f4"
+                "reference": "97107691cb2b6c743b5e0c44be19e983cb337a02"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/php-text-template/zipball/a47af19f93f76aa3368303d752aa5272ca3299f4",
-                "reference": "a47af19f93f76aa3368303d752aa5272ca3299f4",
+                "url": "https://api.github.com/repos/sebastianbergmann/php-text-template/zipball/97107691cb2b6c743b5e0c44be19e983cb337a02",
+                "reference": "97107691cb2b6c743b5e0c44be19e983cb337a02",
                 "shasum": ""
             },
             "require": {
                 "php": ">=8.4"
             },
             "require-dev": {
-                "phpunit/phpunit": "^13.0"
+                "phpunit/phpunit": "^13.3.6"
             },
             "type": "library",
             "extra": {
@@ -1574,7 +1724,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/php-text-template/issues",
                 "security": "https://github.com/sebastianbergmann/php-text-template/security/policy",
-                "source": "https://github.com/sebastianbergmann/php-text-template/tree/6.0.0"
+                "source": "https://github.com/sebastianbergmann/php-text-template/tree/6.0.1"
             },
             "funding": [
                 {
@@ -1594,7 +1744,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-02-06T04:36:37+00:00"
+            "time": "2026-10-03T04:54:24+00:00"
         },
         {
             "name": "phpunit/php-timer",
@@ -1670,16 +1820,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "13.3.2",
+            "version": "13.4.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "22104a5ceb8d642e6b30ab00211d53d88e2db368"
+                "reference": "7b9ba83328f01ce299ef82161720195bd827a4bb"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/22104a5ceb8d642e6b30ab00211d53d88e2db368",
-                "reference": "22104a5ceb8d642e6b30ab00211d53d88e2db368",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/7b9ba83328f01ce299ef82161720195bd827a4bb",
+                "reference": "7b9ba83328f01ce299ef82161720195bd827a4bb",
                 "shasum": ""
             },
             "require": {
@@ -1693,15 +1843,15 @@
                 "phar-io/manifest": "^2.0.4",
                 "phar-io/version": "^3.2.1",
                 "php": ">=8.4.1",
-                "phpunit/php-code-coverage": "^14.3.1",
+                "phpunit/php-code-coverage": "^14.4.1",
                 "phpunit/php-file-iterator": "^7.0.2",
                 "phpunit/php-invoker": "^7.0.0",
-                "phpunit/php-text-template": "^6.0.0",
+                "phpunit/php-text-template": "^6.0.1",
                 "phpunit/php-timer": "^9.0.0",
                 "sebastian/cli-parser": "^5.0.1",
                 "sebastian/comparator": "^8.4",
-                "sebastian/diff": "^9.0",
-                "sebastian/environment": "^9.3.2",
+                "sebastian/diff": "^9.0.1",
+                "sebastian/environment": "^9.3.3",
                 "sebastian/exporter": "^8.2.1",
                 "sebastian/file-filter": "^1.0",
                 "sebastian/git-state": "^1.0",
@@ -1709,7 +1859,7 @@
                 "sebastian/object-enumerator": "^8.1.0",
                 "sebastian/recursion-context": "^8.0.1",
                 "sebastian/type": "^7.0.2",
-                "sebastian/version": "^7.0.0",
+                "sebastian/version": "^7.0.1",
                 "staabm/side-effects-detector": "^1.0.5"
             },
             "bin": [
@@ -1718,7 +1868,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-main": "13.3-dev"
+                    "dev-main": "13.4-dev"
                 }
             },
             "autoload": {
@@ -1750,7 +1900,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/phpunit/issues",
                 "security": "https://github.com/sebastianbergmann/phpunit/security/policy",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/13.3.2"
+                "source": "https://github.com/sebastianbergmann/phpunit/tree/13.4.2"
             },
             "funding": [
                 {
@@ -1758,7 +1908,7 @@
                     "type": "other"
                 }
             ],
-            "time": "2026-08-27T08:40:49+00:00"
+            "time": "2026-10-12T15:29:04+00:00"
         },
         {
             "name": "sebastian/cli-parser",
@@ -2072,23 +2222,23 @@
         },
         {
             "name": "sebastian/environment",
-            "version": "9.3.2",
+            "version": "9.3.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/environment.git",
-                "reference": "6c9e487c9eb706a8d258102a1c0b0a3e53e86c2e"
+                "reference": "d4dd10267a11055066a2a78ae04583d8ddd4f595"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/environment/zipball/6c9e487c9eb706a8d258102a1c0b0a3e53e86c2e",
-                "reference": "6c9e487c9eb706a8d258102a1c0b0a3e53e86c2e",
+                "url": "https://api.github.com/repos/sebastianbergmann/environment/zipball/d4dd10267a11055066a2a78ae04583d8ddd4f595",
+                "reference": "d4dd10267a11055066a2a78ae04583d8ddd4f595",
                 "shasum": ""
             },
             "require": {
                 "php": ">=8.4"
             },
             "require-dev": {
-                "phpunit/phpunit": "^13.1.11"
+                "phpunit/phpunit": "^13.3.6"
             },
             "suggest": {
                 "ext-posix": "*"
@@ -2124,7 +2274,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/environment/issues",
                 "security": "https://github.com/sebastianbergmann/environment/security/policy",
-                "source": "https://github.com/sebastianbergmann/environment/tree/9.3.2"
+                "source": "https://github.com/sebastianbergmann/environment/tree/9.3.3"
             },
             "funding": [
                 {
@@ -2144,7 +2294,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-05-25T13:41:38+00:00"
+            "time": "2026-10-01T12:37:56+00:00"
         },
         {
             "name": "sebastian/exporter",
@@ -2802,16 +2952,16 @@
         },
         {
             "name": "sebastian/version",
-            "version": "7.0.0",
+            "version": "7.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/version.git",
-                "reference": "ad37a5552c8e2b88572249fdc19b6da7792e021b"
+                "reference": "f1598cf1d8d1ca4c0f194a52f2fe72a559a7b0b1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/version/zipball/ad37a5552c8e2b88572249fdc19b6da7792e021b",
-                "reference": "ad37a5552c8e2b88572249fdc19b6da7792e021b",
+                "url": "https://api.github.com/repos/sebastianbergmann/version/zipball/f1598cf1d8d1ca4c0f194a52f2fe72a559a7b0b1",
+                "reference": "f1598cf1d8d1ca4c0f194a52f2fe72a559a7b0b1",
                 "shasum": ""
             },
             "require": {
@@ -2844,7 +2994,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/version/issues",
                 "security": "https://github.com/sebastianbergmann/version/security/policy",
-                "source": "https://github.com/sebastianbergmann/version/tree/7.0.0"
+                "source": "https://github.com/sebastianbergmann/version/tree/7.0.1"
             },
             "funding": [
                 {
@@ -2864,7 +3014,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-02-06T04:52:52+00:00"
+            "time": "2026-10-04T05:51:14+00:00"
         },
         {
             "name": "squizlabs/php_codesniffer",

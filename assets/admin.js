@@ -44,69 +44,73 @@
     }
 
     // -----------------------------------------------------------------------
-    // Connector Status
+    // Connection status
     // -----------------------------------------------------------------------
 
-    var $connectorStatus = $('#easysql-connector-status');
+    var $connectionStatus = $('#easysql-connection-status');
     var $syncBtn         = $('#easysql-sync-btn');
 
-    function loadConnector() {
-        if (! $connectorStatus.length) {
+    function escapeHtml(value) {
+        return $('<div>').text(String(value)).html();
+    }
+
+    function loadConnection() {
+        if (! $connectionStatus.length) {
             return;
         }
 
-        $connectorStatus.html(
+        $connectionStatus.html(
             '<span class="spinner" style="float:none;margin-top:0;visibility:visible;"></span> Loading…'
         );
 
         $.ajax({
-            url:  wpApiSettings.root + 'easysql/v1/connector',
+            url:  wpApiSettings.root + 'easysql/v1/connection',
             method: 'GET',
             beforeSend: function (xhr) {
                 xhr.setRequestHeader('X-WP-Nonce', wpApiSettings.nonce);
             },
             success: function (resp) {
                 var html = '<table class="widefat striped" style="max-width:500px">';
-                html += '<tr><td><strong>ID</strong></td><td><code>' + resp.id + '</code></td></tr>';
-                html += '<tr><td><strong>Name</strong></td><td>' + resp.name + '</td></tr>';
-                html += '<tr><td><strong>Type</strong></td><td>' + (resp.type || 'mysql') + '</td></tr>';
-                html += '<tr><td><strong>Last Sync</strong></td><td>' + (resp.last_sync_at || 'Never') + '</td></tr>';
+                html += '<tr><td><strong>ID</strong></td><td><code>' + escapeHtml(resp.id) + '</code></td></tr>';
+                html += '<tr><td><strong>Name</strong></td><td>' + escapeHtml(resp.name) + '</td></tr>';
+                html += '<tr><td><strong>Type</strong></td><td>' + escapeHtml(resp.type || 'mysql') + '</td></tr>';
+                html += '<tr><td><strong>Last Sync</strong></td><td>' + escapeHtml(resp.last_sync_at || 'Never') + '</td></tr>';
                 html += '</table>';
-                $connectorStatus.html(html);
+                $connectionStatus.html(html);
                 $syncBtn.prop('disabled', false);
             },
             error: function (xhr) {
-                var msg = 'Could not load connector.';
+                var msg = 'Could not load connection.';
                 try {
                     var body = xhr.responseJSON;
                     if (body && body.error) {
                         msg = body.error;
                     }
                 } catch (_) { /* ignore */ }
-                $connectorStatus.html('<span class="error">' + msg + '</span>');
+                $connectionStatus.html('<span class="error">' + escapeHtml(msg) + '</span>');
                 $syncBtn.prop('disabled', true);
             },
         });
     }
 
-    if ($connectorStatus.length) {
-        loadConnector();
+    if ($connectionStatus.length) {
+        loadConnection();
     }
 
     $syncBtn.on('click', function () {
         $syncBtn.prop('disabled', true);
-        $connectorStatus.html(
+        $connectionStatus.html(
             '<span class="spinner" style="float:none;margin-top:0;visibility:visible;"></span> Syncing…'
         );
 
         $.ajax({
-            url:  wpApiSettings.root + 'easysql/v1/connector/sync',
+            url:  wpApiSettings.root + 'easysql/v1/connection/sync',
             method: 'POST',
             beforeSend: function (xhr) {
                 xhr.setRequestHeader('X-WP-Nonce', wpApiSettings.nonce);
             },
             success: function () {
-                loadConnector();
+                loadConnection();
             },
             error: function (xhr) {
                 var msg = 'Sync failed.';
@@ -116,7 +120,7 @@
                         msg = body.message;
                     }
                 } catch (_) { /* ignore */ }
-                $connectorStatus.html('<span class="error">' + msg + '</span>');
+                $connectionStatus.html('<span class="error">' + escapeHtml(msg) + '</span>');
                 $syncBtn.prop('disabled', false);
             },
         });

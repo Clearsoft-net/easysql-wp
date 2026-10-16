@@ -8,7 +8,7 @@ namespace EasySQL\Admin;
  * WordPress admin settings page for EasySQL.
  *
  * Provides the UI for entering / updating the API key and connection
- * timeout, plus a status section for the "wp" connector.
+ * timeout, plus a status section for the WordPress connection.
  * The endpoint URL is shown read-only and configured via the
  * EASYSQL_ENDPOINT constant in wp-config.php.
  */
@@ -125,9 +125,9 @@ class SettingsPage {
 
             <hr>
 
-            <h2><?php esc_html_e('WordPress Connector', 'easysql'); ?></h2>
-            <p><?php esc_html_e('Status of the automatic "wp" connector that represents this WordPress database.', 'easysql'); ?></p>
-            <div id="easysql-connector-status">
+            <h2><?php esc_html_e('WordPress Connection', 'easysql'); ?></h2>
+            <p><?php esc_html_e('Status of the schema-only connection representing this WordPress database.', 'easysql'); ?></p>
+            <div id="easysql-connection-status">
                 <span class="spinner" style="float:none;margin-top:0;"></span>
                 <?php esc_html_e('Loading…', 'easysql'); ?>
             </div>
@@ -177,7 +177,7 @@ class SettingsPage {
     public function field_endpoint(): void {
         $value = defined('EASYSQL_ENDPOINT')
             ? EASYSQL_ENDPOINT
-            : 'https://api.easysql.net/v1';
+            : 'https://api.easysql.net';
         printf(
             '<input type="url" id="easysql_endpoint" value="%s" class="regular-text" disabled />',
             esc_attr($value)

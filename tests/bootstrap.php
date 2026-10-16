@@ -113,11 +113,22 @@ function absint($value)
     return abs((int) $value);
 }
 
+function get_site_url(): string
+{
+    return (string) ($GLOBALS['__easysql_test_options']['siteurl'] ?? 'https://example.test');
+}
+
+function home_url(): string
+{
+    return get_site_url();
+}
+
+function get_option_value_for_test(string $name, $default = false)
+{
+    return get_option($name, $default);
+}
+
 function wp_create_nonce($action = '')
 {
     return 'test-nonce-' . $action;
 }
-
-// WordPress result-type constants used by ConnectorService::fetch_schema().
-const ARRAY_A = 'ARRAY_A';
-const OBJECT  = 'OBJECT';

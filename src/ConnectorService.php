@@ -4,365 +4,210 @@ declare(strict_types=1);
 
 namespace EasySQL;
 
-use Clearsoft\EasySQL\SDK\Client;
+use Clearsoft\EasySQL\Client\Client;
+use Clearsoft\EasySQL\Client\Exceptions\ApiException;
+use Clearsoft\EasySQL\Connectors\ConnectorInterface;
+use Clearsoft\EasySQL\SchemaGeneration\SchemaGenerator;
 
-/**
- * Manages the "wp" connector lifecycle.
- *
- * On first use, creates a connector representing the WordPress database
- * via the EasySQL API, caches the connector_id in wp_options, and
- * provides helpers to sync the schema and retrieve connector info.
- */
 class ConnectorService {
 
-    /**
-     * @var QueryService
-     */
-    private $query_service;
+	private const CONNECTION_OPTION       = 'easysql_connection';
+	private const LEGACY_CONNECTOR_OPTION = 'easysql_connector';
 
-    /**
-     * @var array|null
-     */
-    private $connector;
+	/**
+	 * @var QueryService
+	 */
+	private $query_service;
 
-    /**
-     * @param QueryService $query_service
-     */
-    public function __construct(QueryService $query_service) {
-        $this->query_service = $query_service;
-    }
+	/**
+	 * @var \Closure():ConnectorInterface
+	 */
+	private $connector_factory;
 
-    // -----------------------------------------------------------------------
-    // Connector resolution
-    // -----------------------------------------------------------------------
+	/**
+	 * @var array|null
+	 */
+	private $connection;
 
-    /**
-     * Return the "wp" connector, creating it via the API if it does not
-     * yet exist. The connector_id is cached in wp_options so subsequent
-     * calls are instant.
-     *
-     * @return array{id: string, name: string, last_sync_at: string|null}
-     *
-     * @throws \RuntimeException If the API response does not contain an 'id' field.
-     */
-    public function get_or_create(): array {
-        if ($this->connector !== null) {
-            return $this->connector;
-        }
+	/**
+	 * @param QueryService                       $query_service     EasySQL API service.
+	 * @param \Closure():ConnectorInterface|null $connector_factory Builds connectors for the WordPress database.
+	 */
+	public function __construct( QueryService $query_service, ?\Closure $connector_factory = null ) {
+		$this->query_service     = $query_service;
+		$this->connector_factory = $connector_factory ?? static function (): ConnectorInterface {
+			return LocalDatabase::connector();
+		};
+	}
 
-        $cached = get_option('easysql_connector', null);
-        if (is_array($cached) && isset($cached['id']) && is_string($cached['id'])) {
-            $cached_id = $cached['id'];
+	/**
+	 * Return this WordPress site's EasySQL connection, creating it if needed.
+	 *
+	 * @return array{id: string, name: string, type?: string, last_sync_at?: string|null}
+	 */
+	public function get_or_create(): array {
+		if ( null !== $this->connection ) {
+			return $this->connection;
+		}
 
-            $client = $this->query_service->client();
+		$cached = get_option( self::CONNECTION_OPTION, null );
+		if ( ! is_array( $cached ) || empty( $cached['id'] ) || ! is_string( $cached['id'] ) ) {
+			$legacy = get_option( self::LEGACY_CONNECTOR_OPTION, null );
+			$cached = is_array( $legacy ) ? $legacy : null;
+		}
 
-            // Validate the cached connector against the backend. If it no
-            // longer exists (e.g. backend restarted with a fresh DB), fall
-            // through so we can look it up / recreate instead of returning a
-            // stale id that would fail with "Connector not found".
-            try {
-                $check = $client->getHttpClient()->request(
-                    'GET',
-                    '/v1/connectors/' . rawurlencode($cached_id)
-                );
-                if ($check->getStatusCode() >= 200 && $check->getStatusCode() < 300) {
-                    $this->connector = $cached;
-                    return $this->connector;
-                }
-            } catch (\Throwable $e) {
-                // Connection/network error — keep the cached connector rather
-                // than throwing; the caller may be offline.
-                $this->connector = $cached;
-                return $this->connector;
-            }
+		$client = $this->query_service->client();
+		if ( is_array( $cached ) && isset( $cached['id'] ) && is_string( $cached['id'] ) ) {
+			try {
+				$connection = $client->getConnection( $cached['id'] );
+				if ( isset( $connection['id'] ) && is_string( $connection['id'] ) ) {
+					return $this->cache_connection( $connection );
+				}
+			} catch ( \Throwable $e ) {
+				if ( ! $this->is_not_found( $e ) ) {
+					$this->connection = $cached;
+					return $this->connection;
+				}
+			}
+		}
 
-            // Cached id is gone — ignore it and resolve fresh below.
-            $cached = null;
-        }
+		foreach ( $client->listConnections() as $connection ) {
+			if ( isset( $connection['name'] ) && $connection['name'] === $this->connection_name() ) {
+				if ( ! isset( $connection['id'] ) || ! is_string( $connection['id'] ) ) {
+					throw new \RuntimeException(
+						esc_html__( 'The WordPress connection returned by EasySQL has an invalid ID.', 'easysql' )
+					);
+				}
+				return $this->cache_connection( $connection );
+			}
+		}
 
-        $client = $this->query_service->client();
+		$connection = $this->create_from_wp_database( $client );
+		if ( ! isset( $connection['id'] ) || ! is_string( $connection['id'] ) ) {
+			throw new \RuntimeException(
+				esc_html__( 'EasySQL did not return a valid connection ID after creation.', 'easysql' )
+			);
+		}
 
-        // 1. Try to find an existing connector named "wp".
-        $response   = $client->getHttpClient()->request('GET', '/v1/connectors');
-        $status     = $response->getStatusCode();
-        $body       = (string) $response->getBody();
-        $connectors = json_decode($body, true);
+		return $this->cache_connection( $connection );
+	}
 
-        if ($status >= 400) {
-            throw new \RuntimeException(
-                $this->extract_error($body, $status)
-            );
-        }
+	/**
+	 * Push the current WordPress schema to EasySQL.
+	 *
+	 * @return array{success: bool, message?: string}
+	 */
+	public function sync(): array {
+		try {
+			$connection    = $this->get_or_create();
+			$connection_id = $connection['id'] ?? null;
+			if ( ! is_string( $connection_id ) || '' === $connection_id ) {
+				return array(
+					'success' => false,
+					'message' => esc_html__( 'Connection ID is missing or invalid.', 'easysql' ),
+				);
+			}
 
-        if (is_array($connectors)) {
-            foreach ($connectors as $c) {
-                if (isset($c['name']) && $c['name'] === 'wp') {
-                    if (! isset($c['id']) || ! is_string($c['id'])) {
-                        throw new \RuntimeException(
-                            esc_html__('The "wp" connector returned by the API has no valid "id" field.', 'easysql')
-                        );
-                    }
-                    $this->connector = $c;
-                    update_option('easysql_connector', $c, false);
-                    return $this->connector;
-                }
-            }
-        }
+			$response = $this->query_service->client()->syncConnection(
+				array(
+					'schema'     => $this->generate_schema_payload(),
+					'db_version' => $this->database_version(),
+				),
+				$connection_id
+			);
 
-        // 2. None found — create one from WordPress DB credentials.
-        $connector = $this->create_from_wp_config($client);
+			return array(
+				'success'    => true,
+				'connection' => $this->cache_connection(
+					array_merge(
+						$connection,
+						$response,
+						array( 'last_sync_at' => gmdate( 'Y-m-d\\TH:i:s\\Z' ) )
+					)
+				),
+			);
+		} catch ( \Throwable $e ) {
+			return array(
+				'success' => false,
+				'message' => $e->getMessage(),
+			);
+		}
+	}
 
-        if (! isset($connector['id']) || ! is_string($connector['id'])) {
-            throw new \RuntimeException(
-                esc_html__('The EasySQL API did not return a valid connector "id" after creation.', 'easysql')
-            );
-        }
+	/** Clear the cached connection so it is registered again on the next request. */
+	public function reset(): void {
+		delete_option( self::CONNECTION_OPTION );
+		delete_option( self::LEGACY_CONNECTOR_OPTION );
+		$this->connection = null;
+	}
 
-        $this->connector = $connector;
-        update_option('easysql_connector', $connector, false);
+	/** Return a stable display name scoped to this WordPress site. */
+	private function connection_name(): string {
+		$site_url = get_option( 'siteurl', 'WordPress' );
+		return 'WordPress - ' . (string) $site_url;
+	}
 
-        return $this->connector;
-    }
+	/**
+	 * @param array $connection
+	 * @return array{id: string, name: string, type?: string, last_sync_at?: string|null}
+	 */
+	private function cache_connection( array $connection ): array {
+		$this->connection = $connection;
+		update_option( self::CONNECTION_OPTION, $connection, false );
+		delete_option( self::LEGACY_CONNECTOR_OPTION );
+		return $this->connection;
+	}
 
-    /**
-     * Call POST /v1/connectors/{id}/sync to synchronise the WordPress
-     * database schema with EasySQL.
-     *
-     * @return array{success: bool, message?: string}
-     */
-    public function sync(): array {
-        try {
-            $connector = $this->get_or_create();
+	/** Create a schema-only connection without sending database credentials.
+	 *
+	 * @param Client $client Configured EasySQL API client.
+	 * @return array<string, mixed>
+	 */
+	private function create_from_wp_database( Client $client ): array {
+		return $client->createConnection(
+			array(
+				'name'       => $this->connection_name(),
+				'type'       => 'wp',
+				'schema'     => $this->generate_schema_payload(),
+				'db_version' => $this->database_version(),
+			)
+		);
+	}
 
-            $connector_id = $connector['id'] ?? null;
-            if (! is_string($connector_id) || $connector_id === '') {
-                return [
-                    'success' => false,
-                    'message' => esc_html__('Connector ID is missing or invalid.', 'easysql'),
-                ];
-            }
+	/**
+	 * Read the raw WordPress schema through the EasySQL MySQL connector.
+	 *
+	 * @return array{engine: string, tables: list<array<string, mixed>>}
+	 */
+	private function introspect_raw_schema(): array {
+		$connector = ( $this->connector_factory )();
+		$connector->connect();
 
-            // Fetch the schema from the local WordPress database and send
-            // it to the API — the API never connects to the database directly.
-            $schema = $this->fetch_schema();
+		try {
+			return $connector->introspect();
+		} finally {
+			$connector->close();
+		}
+	}
 
-            $client  = $this->query_service->client();
-            $response = $client->getHttpClient()->request(
-                'POST',
-                '/v1/connectors/' . rawurlencode($connector_id) . '/sync',
-                [
-                    'json' => [
-                        'schema' => $schema,
-                    ],
-                ]
-            );
+	/**
+	 * Generate the canonical API schema using the SDK's schema generator.
+	 *
+	 * @return list<array<string, mixed>>
+	 */
+	private function generate_schema_payload(): array {
+		return ( new SchemaGenerator() )->generate( $this->introspect_raw_schema() );
+	}
 
-            if ($response->getStatusCode() >= 400) {
-                $body = json_decode((string) $response->getBody(), true);
-                $message = is_array($body) && isset($body['detail']) && is_string($body['detail'])
-                    ? $body['detail']
-                    : sprintf(
-                        /* translators: %d: HTTP status code */
-                        esc_html__('Sync request failed with HTTP %d.', 'easysql'),
-                        $response->getStatusCode()
-                    );
-                return [
-                    'success' => false,
-                    'message' => $message,
-                ];
-            }
+	private function database_version(): string {
+		return LocalDatabase::version();
+	}
 
-            // Update cached last_sync_at.
-            $cached = get_option('easysql_connector', []);
-            if (is_array($cached)) {
-                $cached['last_sync_at'] = gmdate('Y-m-d\TH:i:s\Z');
-                update_option('easysql_connector', $cached, false);
-                $this->connector = $cached;
-            }
-
-            return ['success' => true];
-        } catch (\Throwable $e) {
-            return [
-                'success' => false,
-                'message' => $e->getMessage(),
-            ];
-        }
-    }
-
-    /**
-     * Delete the stored connector option so get_or_create() will
-     * re-create it on the next call.
-     */
-    public function reset(): void {
-        delete_option('easysql_connector');
-        $this->connector = null;
-    }
-
-    // -----------------------------------------------------------------------
-    // Helpers
-    // -----------------------------------------------------------------------
-
-    /**
-     * Create a connector via POST /v1/connectors.
-     *
-     * Instead of sending database credentials to the API (which would
-     * require the API to connect to the database directly), we use the
-     * existing WordPress database connection ($wpdb) to fetch the schema
-     * and send it along so the API can generate accurate SQL without
-     * ever touching the database itself.
-     *
-     * @param  Client $client
-     * @return array
-     */
-    private function create_from_wp_config(Client $client): array {
-        $schema = $this->fetch_schema();
-
-        $body = [
-            'name' => 'wp',
-            'type' => 'mysql',
-        ];
-
-        if ($schema !== []) {
-            $body['schema'] = $schema;
-        }
-
-        $response = $client->getHttpClient()->request('POST', '/v1/connectors', [
-            'json' => $body,
-        ]);
-
-        $status = $response->getStatusCode();
-        $raw    = (string) $response->getBody();
-
-        if ($status >= 400) {
-            throw new \RuntimeException(
-                $this->extract_error($raw, $status)
-            );
-        }
-
-        $body = json_decode($raw, true);
-        if (! is_array($body)) {
-            throw new \RuntimeException(
-                esc_html__('Failed to create the WordPress connector.', 'easysql')
-            );
-        }
-
-        return $body;
-    }
-
-    /**
-     * Fetch the WordPress database schema using the existing wpdb
-     * connection. Returns an array of tables with columns, types,
-     * and foreign keys — the same structure the EasySQL API expects
-     * from a schema sync.
-     *
-     * @return list<array{name: string, columns: list<array>, rows_approx: int|null}>
-     */
-    private function fetch_schema(): array {
-        global $wpdb;
-
-        if (! isset($wpdb) || ! is_object($wpdb) || ! isset($wpdb->dbh)) {
-            return [];
-        }
-
-        $tables = $wpdb->get_results(
-            $wpdb->prepare(
-                'SELECT TABLE_NAME AS `name`, TABLE_ROWS AS `rows_approx`
-                 FROM information_schema.TABLES
-                 WHERE TABLE_SCHEMA = %s
-                   AND TABLE_TYPE = \'BASE TABLE\'
-                 ORDER BY TABLE_NAME',
-                DB_NAME
-            ),
-            ARRAY_A
-        );
-
-        if (! is_array($tables) || $tables === []) {
-            return [];
-        }
-
-        $schema = [];
-        foreach ($tables as $table) {
-            $table_name  = $table['name'] ?? '';
-            $rows_approx = isset($table['rows_approx']) ? (int) $table['rows_approx'] : null;
-
-            if ($table_name === '') {
-                continue;
-            }
-
-            $columns = $wpdb->get_results(
-                $wpdb->prepare(
-                    'SELECT COLUMN_NAME AS `name`,
-                            COLUMN_TYPE AS `type`,
-                            IS_NULLABLE AS `nullable`,
-                            COLUMN_DEFAULT AS `default`,
-                            COLUMN_KEY AS `column_key`
-                     FROM information_schema.COLUMNS
-                     WHERE TABLE_SCHEMA = %s
-                       AND TABLE_NAME = %s
-                     ORDER BY ORDINAL_POSITION',
-                    DB_NAME,
-                    $table_name
-                ),
-                ARRAY_A
-            );
-
-            $cols = [];
-            if (is_array($columns)) {
-                foreach ($columns as $col) {
-                    $cols[] = [
-                        'name'         => $col['name'] ?? '',
-                        'type'         => $col['type'] ?? '',
-                        'nullable'     => isset($col['nullable']) && $col['nullable'] === 'YES',
-                        'default'      => $col['default'] ?? null,
-                        'primary_key'  => isset($col['column_key']) && $col['column_key'] === 'PRI',
-                    ];
-                }
-            }
-
-            $schema[] = [
-                'name'         => $table_name,
-                'columns'      => $cols,
-                'rows_approx'  => $rows_approx,
-            ];
-        }
-
-        return $schema;
-    }
-
-    /**
-     * Extract a user-friendly error message from an API response body
-     * that may be JSON with a "detail" or "message" key, falling back
-     * to a generic "HTTP {status}" string.
-     *
-     * @param  string $raw_body Raw response body as a string.
-     * @param  int    $status   HTTP status code.
-     * @return string
-     */
-    private function extract_error(string $raw_body, int $status): string {
-        $decoded = json_decode($raw_body, true);
-        if (is_array($decoded)) {
-            $detail = $decoded['detail'] ?? $decoded['message'] ?? null;
-
-            if (is_string($detail) && $detail !== '') {
-                return $detail;
-            }
-
-            if (is_array($detail)) {
-                $messages = [];
-                foreach ($detail as $entry) {
-                    if (is_array($entry) && isset($entry['msg']) && is_string($entry['msg'])) {
-                        $messages[] = $entry['msg'];
-                    }
-                }
-                if ($messages !== []) {
-                    return implode('; ', $messages);
-                }
-            }
-        }
-        return sprintf(
-            /* translators: %d: HTTP status code */
-            esc_html__('Request failed with HTTP %d.', 'easysql'),
-            $status
-        );
-    }
+	/** Identify a missing API-side connection so it can be re-registered.
+	 *
+	 * @param \Throwable $error API client exception.
+	 */
+	private function is_not_found( \Throwable $error ): bool {
+		return $error instanceof ApiException && 404 === $error->getStatusCode();
+	}
 }
